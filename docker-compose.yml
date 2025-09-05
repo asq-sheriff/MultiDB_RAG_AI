@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: pgvector/pgvector:pg15
     container_name: chatbot-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-chatbot_app}
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
     depends_on:
       scylla-node1:
-        condition: service_healthy # CRITICAL CHANGE
+        condition: service_healthy
     command: --seeds=scylla-node1 --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
     healthcheck:
       test: [ "CMD-SHELL", "nodetool status | grep -w 'UN'" ]
@@ -108,36 +108,48 @@ services:
     restart: unless-stopped
     depends_on:
       scylla-node2:
-        condition: service_healthy # CRITICAL CHANGE
+        condition: service_healthy
     command: --seeds=scylla-node1 --smp 1 --memory 750M --overprovisioned 1 --api-address 0.0.0.0
     healthcheck:
       test: [ "CMD-SHELL", "nodetool status | grep -w 'UN'" ]
       interval: 10s
       timeout: 5s
       retries: 12
-  app:
+# API Gateway Service runs locally on development (port 8000)
+
+  # Search Service - Runs in Docker with database access
+  search-service:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: multidb-chatbot
+      dockerfile: Dockerfile.search-service
+    container_name: multidb-search-service
     ports:
-      - "8000:8000"
+      - "8001:8001"
     env_file:
       - .env
     environment:
-      # Sensible defaults for local stack; override via .env if needed
-      MONGODB_URI: "mongodb://root:example@mongodb-atlas-local:27017/?replicaSet=mongodb-atlas-local&directConnection=true"
-      REDIS_URL: "redis://my-redis:6379/0"
       POSTGRES_DSN: "postgresql+asyncpg://chatbot_user:secure_password@chatbot-postgres:5432/chatbot_app"
+      REDIS_URL: "redis://my-redis:6379/1"
+      REDIS_HOST: "my-redis"
+      REDIS_PORT: "6379"
+      REDIS_DB: "1"
+      EMBEDDING_SERVICE_URL: "http://host.docker.internal:8005"  # Connect to local hybrid embedding service
+      SEARCH_SERVICE_PORT: "8001"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      scylla-node1:
-        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Enable access to host services
+
+# Embedding Service runs locally with enhanced hybrid features (port 8005)
+# Generation Service runs locally with enhanced hybrid features (port 8006)
 
 volumes:
   postgres_data:
@@ -148,3 +160,5 @@ volumes:
   mongo-data:
   mongo-config:
   mongo-mongot:
+  sentence_transformers_cache:
+  huggingface_cache:

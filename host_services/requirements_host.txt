@@ -1,0 +1,22 @@
+# Host Services Requirements - GPU accelerated models on macOS M1
+# Install these in your host Python environment (not container)
+
+# Core dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+aiohttp>=3.9.0
+
+# BGE Embeddings (FlagEmbedding with PyTorch)
+torch>=2.2.0
+FlagEmbedding>=1.2.0
+
+# Additional utilities
+pydantic>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+
+# Optional: For safety service
+transformers>=4.30.0
+
+# Development
+pytest>=7.0.0

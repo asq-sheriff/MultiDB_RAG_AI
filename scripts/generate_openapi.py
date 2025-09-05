@@ -10,7 +10,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 candidates = [
     ("main", "app"),          # if you have top-level main.py
     ("app.main", "app"),      # if app/main.py exists
-    ("app.api.main", "app"),  # your repo often uses this path
+    ("app.ai_services", "app"),  # your repo often uses this path
 ]
 
 app = None

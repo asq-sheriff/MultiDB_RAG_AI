@@ -1,0 +1,40 @@
+{
+  "total_tests": 2,
+  "passed": 2,
+  "failed": 0,
+  "skipped": 0,
+  "total_duration": 95.55945229530334,
+  "categories": {
+    "unit": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "database": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "timestamp": "2025-08-29T18:55:34.841720+00:00",
+  "results": [
+    {
+      "name": "unit_tests",
+      "category": "unit",
+      "status": "passed",
+      "duration": 63.91683387756348,
+      "output": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/asqmac/git-repos/MultiDB-Chatbot/.venv/bin/python\ncachedir: .pytest_cache\nmetadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'asyncio': '1.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1'}}\nrootdir: /Users/asqmac/git-repos/MultiDB-Chatbot\nconfigfile: pytest.ini\nplugins: anyio-4.9.0, asyncio-1.1.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1\nasyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollecting ... collected 17 items\n\ntests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_min_max_normalize PASSED [  5%]\ntests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_z_score_normalize PASSED [ 11%]\ntests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_percentile_rank_scores PASSED [ 17%]\ntests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_reciprocal_rank_fusion PASSED [ 23%]\ntests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_cosine_only_strategy PASSED [ 29%]\ntests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection PASSED [ 35%]\ntests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_variance_reduction PASSED [ 41%]\ntests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_empty_results_handling PASSED [ 47%]\ntests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs PASSED [ 52%]\ntests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_rerank_results PASSED [ 58%]\ntests/unit/test_advanced_ranking.py::test_integrated_ranking_pipeline PASSED [ 64%]\ntests/unit/test_data_layer.py::test_data_layer_imports PASSED            [ 70%]\ntests/unit/test_data_layer.py::test_ai_services_imports PASSED           [ 76%]\ntests/unit/test_data_layer.py::test_app_services_imports PASSED          [ 82%]\ntests/unit/test_data_layer.py::test_core_imports PASSED                  [ 88%]\ntests/unit/test_data_layer.py::test_async_imports PASSED                 [ 94%]\ntests/unit/test_data_layer.py::test_no_old_imports PASSED                [100%]\n\n- generated xml file: /Users/asqmac/git-repos/MultiDB-Chatbot/test_reports/junit_unit.xml -\n============================= slowest 10 durations =============================\n30.12s setup    tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_min_max_normalize\n4.66s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_cosine_only_strategy\n0.80s call     tests/unit/test_advanced_ranking.py::test_integrated_ranking_pipeline\n0.80s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_variance_reduction\n0.74s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection\n0.70s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_empty_results_handling\n0.68s setup    tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs\n0.66s setup    tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_rerank_results\n0.07s call     tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection\n0.05s call     tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs\n============================= 17 passed in 40.07s ==============================\n",
+      "error": "",
+      "metrics": null
+    },
+    {
+      "name": "database_tests",
+      "category": "database",
+      "status": "passed",
+      "duration": 31.641777276992798,
+      "output": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/asqmac/git-repos/MultiDB-Chatbot/.venv/bin/python\ncachedir: .pytest_cache\nmetadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'asyncio': '1.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1'}}\nrootdir: /Users/asqmac/git-repos/MultiDB-Chatbot\nconfigfile: pytest.ini\nplugins: anyio-4.9.0, asyncio-1.1.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1\nasyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function\ncollecting ... collected 4 items\n\ntests/system/test_databases.py::test_postgresql PASSED                   [ 25%]\ntests/system/test_databases.py::test_mongodb PASSED                      [ 50%]\ntests/system/test_databases.py::test_redis PASSED                        [ 75%]\ntests/system/test_databases.py::test_scylladb PASSED                     [100%]\n\n- generated xml file: /Users/asqmac/git-repos/MultiDB-Chatbot/test_reports/junit_database.xml -\n============================= slowest 10 durations =============================\n30.13s setup    tests/system/test_databases.py::test_postgresql\n0.01s call     tests/system/test_databases.py::test_redis\n0.00s teardown tests/system/test_databases.py::test_scylladb\n0.00s teardown tests/system/test_databases.py::test_postgresql\n0.00s call     tests/system/test_databases.py::test_postgresql\n0.00s setup    tests/system/test_databases.py::test_mongodb\n0.00s teardown tests/system/test_databases.py::test_mongodb\n0.00s call     tests/system/test_databases.py::test_mongodb\n0.00s setup    tests/system/test_databases.py::test_redis\n0.00s setup    tests/system/test_databases.py::test_scylladb\n============================== 4 passed in 30.17s ==============================\n",
+      "error": "",
+      "metrics": null
+    }
+  ]
+}

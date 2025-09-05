@@ -1,0 +1,17 @@
+# Terraform Variables for Local Development
+# ==========================================
+# Copy this file to terraform.tfvars and update with your values
+# terraform.tfvars is excluded from Git for security
+
+# Project Configuration
+project_name = "multidb-chatbot"
+
+# Database Passwords (Keep Secure!)
+postgres_password = "your_secure_postgres_password_here"
+mongo_password    = "your_secure_mongo_password_here"
+
+# Optional: Resource Limits
+# postgres_memory = "512m"
+# redis_memory = "128m"  
+# mongo_memory = "512m"
+# scylla_memory = "750M"

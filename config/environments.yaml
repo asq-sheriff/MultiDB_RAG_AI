@@ -1,0 +1,49 @@
+# Environment Configuration Mapping
+# Maps environment names to their respective configuration files
+
+environments:
+  development:
+    env_file: ".env"
+    description: "Development environment with local containers"
+    databases:
+      postgres: "localhost:5432"
+      mongodb: "localhost:27017" 
+      redis: "localhost:6379"
+      scylla: "localhost:9042-9044"
+  
+  demo:
+    env_file: "demo/config/.env.demo_v1"
+    description: "Demo environment with isolated demo containers"
+    databases:
+      postgres: "localhost:5433"
+      mongodb: "localhost:27018"
+      redis: "localhost:6380"  
+      scylla: "localhost:9045-9047"
+  
+  testing:
+    env_file: "config/testing.env"
+    description: "Testing environment with test databases"
+    
+  production:
+    env_file: null  # Use system environment variables
+    description: "Production environment using system env vars"
+
+# Default environment if none specified
+default_environment: "development"
+
+# Environment detection rules (in priority order)
+detection_rules:
+  # Highest priority: explicit override flags
+  - env_var: "DEMO_MODE"
+    value: "1"
+    maps_to: "demo"
+    
+  - env_var: "CI"
+    value: "true"
+    maps_to: "testing"
+  
+  # Medium priority: explicit environment variables
+  - env_var: "APP_ENVIRONMENT"
+    
+  # Lowest priority: general environment variable (can be overridden)
+  - env_var: "ENVIRONMENT"

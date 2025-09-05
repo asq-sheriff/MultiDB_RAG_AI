@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Architecture of Empathy: An AI Companion for Seniors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F4F6F8;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .flowchart-node {
+            border: 2px solid #8186A0;
+            background-color: #FFFFFF;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .flowchart-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            font-size: 2rem;
+            color: #8186A0;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 2.5rem;
+            padding-bottom: 2rem;
+            border-left: 3px solid #8186A0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -0.7rem;
+            top: 0;
+            height: 1.25rem;
+            width: 1.25rem;
+            border-radius: 9999px;
+            background-color: #FF9B71;
+            border: 3px solid #F4F6F8;
+        }
+        .stat-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2B3044;
+        }
+        .stat-label {
+            font-size: 1rem;
+            color: #8186A0;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body class="text-[#2B3044]">
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <header class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">The Architecture of Empathy</h1>
+            <p class="text-lg md:text-xl text-[#8186A0]">Visualizing an AI Companion Designed to Reduce Loneliness and Anxiety in Seniors</p>
+        </header>
+
+        <section id="kpis" class="mb-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">A Proactive Approach to Senior Wellness</h2>
+                <p class="max-w-3xl mx-auto text-[#8186A0]">By focusing on safe, empathetic companionship, the AI assistant delivers measurable improvements in health and well-being. Pilot programs highlight significant reductions in negative outcomes and a notable increase in satisfaction.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                 <div class="stat-card">
+                    <div class="stat-number">~35%</div>
+                    <div class="stat-label">Reduction in Anxiety Incidents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">~12%</div>
+                    <div class="stat-label">Reduction in Hospital Readmissions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">~8%</div>
+                    <div class="stat-label">Reduction in Emergency Dept. Visits</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">+18%</div>
+                    <div class="stat-label">Increase in Family & Staff Satisfaction</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="principles" class="mb-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Built on a Foundation of Trust</h2>
+                <p class="max-w-3xl mx-auto text-[#8186A0]">The companion's success is rooted in three core principles derived from established clinical and psychological research, ensuring every interaction is meaningful, effective, and safe.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <div class="text-5xl mb-4">🤝</div>
+                    <h3 class="text-xl font-semibold mb-2">Familiarity & Continuity</h3>
+                    <p class="text-[#8186A0]">Prioritizes stable routines and remembers personal history to build trust and reduce cognitive load, reflecting the user's own identity and patterns.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <div class="text-5xl mb-4">💡</div>
+                    <h3 class="text-xl font-semibold mb-2">Evidence-Based Support</h3>
+                    <p class="text-[#8186A0]">Engages users with conversational modes grounded in proven therapeutic techniques like Reminiscence, Behavioral Activation, and Affect Labeling.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <div class="text-5xl mb-4">🛡️</div>
+                    <h3 class="text-xl font-semibold mb-2">Therapeutic Alliance & Safety</h3>
+                    <p class="text-[#8186A0]">Fosters a strong collaborative bond through empathy and positive regard, all within a robust safety framework that can detect and escalate signs of distress.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="engine-flow" class="mb-20">
+             <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">The Empathetic Conversation Engine</h2>
+                <p class="max-w-3xl mx-auto text-[#8186A0]">The companion is powered by a stateful, agentic architecture. A central Router agent analyzes user needs and delegates tasks to specialized modules in a dynamic, multi-step process.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-y-4">
+                <div class="col-span-1 md:col-span-3">
+                    <div class="flowchart-node bg-[#2B3044] text-white border-[#2B3044]">User Input or Scheduled Trigger</div>
+                </div>
+                <div class="col-span-1 md:col-span-3 flowchart-arrow">↓</div>
+                <div class="col-span-1 md:col-start-2">
+                    <div class="flowchart-node">1. Intent & Affect Detection</div>
+                </div>
+                <div class="col-span-1 md:col-span-3 flowchart-arrow">↓</div>
+                <div class="col-span-1 md:col-start-2">
+                     <div class="flowchart-node">2. Alliance Layer (Empathy First)</div>
+                </div>
+                <div class="col-span-1 md:col-span-3 flowchart-arrow">↓</div>
+                <div class="col-span-1 md:col-start-2">
+                     <div class="flowchart-node">3. Intervention Planner</div>
+                </div>
+                <div class="col-span-1 md:col-span-3 flowchart-arrow">↓</div>
+                <div class="col-span-1 md:col-span-3 grid grid-cols-1 lg:grid-cols-5 gap-4">
+                     <div class="flowchart-node">Reminiscence</div>
+                     <div class="flowchart-node">Behavioral Activation</div>
+                     <div class="flowchart-node">Grounding</div>
+                     <div class="flowchart-node">Social Bridge</div>
+                     <div class="flowchart-node">Safety & Escalation</div>
+                </div>
+                 <div class="col-span-1 md:col-span-3 flowchart-arrow">↓</div>
+                <div class="col-span-1 md:col-start-2">
+                     <div class="flowchart-node">4. Continuity Renderer (Injects Memory)</div>
+                </div>
+                 <div class="col-span-1 md:col-span-3 flowchart-arrow">↓</div>
+                 <div class="col-span-1 md:col-start-2">
+                    <div class="flowchart-node bg-[#FF9B71] text-white border-[#FF9B71]">Empathetic, Personalized Response</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="interventions" class="mb-20">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">A Toolkit for Well-Being</h2>
+                    <p class="text-[#8186A0] mb-6">The agent selects from a variety of evidence-based intervention modules, each designed to address a specific emotional or social need. This ensures the support offered is always relevant, targeted, and effective.</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-4 rounded-lg shadow-sm"><strong>Reminiscence:</strong> Guided prompts about meaningful life events to reinforce identity.</div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm"><strong>Behavioral Activation:</strong> Gentle nudges toward simple, rewarding daily activities.</div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm"><strong>Affect Labeling:</strong> Naming and validating feelings to reduce emotional reactivity.</div>
+                         <div class="bg-white p-4 rounded-lg shadow-sm"><strong>Social Bridging:</strong> Scaffolding connections to family and friends, not replacing them.</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="chart-container">
+                        <canvas id="interventionsChart"></canvas>
+                    </div>
+                     <p class="text-center text-sm text-[#8186A0] mt-2">Hypothetical Distribution of Interventions</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="scenario" class="mb-20">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">A Day with Mrs. Lewis: Architecture in Action</h2>
+                <p class="max-w-3xl mx-auto text-[#8186A0]">The following demonstrates how the stateful, agentic system creates a continuous, supportive experience throughout a user's day, adapting its approach based on time, context, and user responses.</p>
+            </div>
+            <div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <time class="mb-1 text-sm font-normal leading-none text-[#8186A0]">08:30 AM - Morning Check-in</time>
+                    <h3 class="text-lg font-semibold text-[#2B3044]">Reminiscence & Connection</h3>
+                    <p class="text-base font-normal text-gray-600">Agent recalls yesterday's conversation about the user's sister and initiates a Reminiscence session, playing a favorite Motown song to create a warm, emotionally meaningful start to the day.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <time class="mb-1 text-sm font-normal leading-none text-[#8186A0]">02:00 PM - Afternoon Nudge</time>
+                    <h3 class="text-lg font-semibold text-[#2B3044]">Behavioral Activation & Social Bridging</h3>
+                    <p class="text-base font-normal text-gray-600">Noticing a scheduled energy dip, the agent nudges a simple, rewarding activity—a "2-minute porch sit." It then acts as a social bridge, composing and sending a text to a friend on the user's behalf.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <time class="mb-1 text-sm font-normal leading-none text-[#8186A0]">07:30 PM - Evening Reflection</time>
+                    <h3 class="text-lg font-semibold text-[#2B3044]">Reflection & Continuity Planning</h3>
+                    <p class="text-base font-normal text-gray-600">The agent initiates a brief recap of the day's positive moments. It uses affect labeling ("That sounds warming and connected") and updates its stateful memory to schedule a similar, preferred nudge for the following day, ensuring continuity.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="metrics" class="mb-16">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Measuring What Matters</h2>
+                <p class="max-w-3xl mx-auto text-[#8186A0]">Success is tracked through validated clinical scales and engagement metrics, providing clear evidence of the companion's positive impact on user well-being and adherence to their routines.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                 <div>
+                     <div class="chart-container">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm text-[#8186A0] mt-2">Hypothetical 6-Week Trend in Well-Being Scores</p>
+                 </div>
+                 <div>
+                    <div class="chart-container">
+                        <canvas id="adherenceChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm text-[#8186A0] mt-2">Weekly Adherence to Daily Routines</p>
+                 </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const professionalPalette = {
+            darkBlue: '#2B3044',
+            midGrayBlue: '#8186A0',
+            warmCoral: '#FF9B71',
+            white: '#FFFFFF',
+            lightBg: '#F4F6F8'
+        };
+
+        const chartTooltipConfig = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                              return label.join(' ');
+                            }
+                            return label;
+                        }
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: professionalPalette.darkBlue
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { color: professionalPalette.darkBlue },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    ticks: { color: professionalPalette.darkBlue },
+                    grid: { display: false }
+                }
+            },
+            maintainAspectRatio: false
+        };
+
+        function processLabels(labels) {
+            return labels.map(label => {
+                if (label.length > 16) {
+                    const words = label.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    words.forEach(word => {
+                        if ((currentLine + word).length > 16) {
+                            lines.push(currentLine.trim());
+                            currentLine = '';
+                        }
+                        currentLine += word + ' ';
+                    });
+                    lines.push(currentLine.trim());
+                    return lines;
+                }
+                return label;
+            });
+        }
+
+        const interventionsCtx = document.getElementById('interventionsChart');
+        if (interventionsCtx) {
+            new Chart(interventionsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: processLabels(['Behavioral Activation', 'Reminiscence', 'Social Bridging', 'Affect Labeling & Soothing']),
+                    datasets: [{
+                        label: 'Intervention Frequency',
+                        data: [40, 25, 20, 15],
+                        backgroundColor: [
+                            professionalPalette.warmCoral,
+                            professionalPalette.darkBlue,
+                            professionalPalette.midGrayBlue,
+                            '#AED6F1'
+                        ],
+                        borderColor: professionalPalette.lightBg,
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                     ...chartTooltipConfig,
+                     scales: {
+                        y: { display: false, grid: { display: false } },
+                        x: { display: false, grid: { display: false } }
+                     }
+                }
+            });
+        }
+
+        const trendsCtx = document.getElementById('trendsChart');
+        if (trendsCtx) {
+            new Chart(trendsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+                    datasets: [{
+                        label: 'Loneliness Score (UCLA-3)',
+                        data: [7.1, 6.8, 6.2, 5.9, 5.5, 5.1],
+                        borderColor: professionalPalette.darkBlue,
+                        backgroundColor: 'rgba(43, 48, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Anxiety Score (GAD-2)',
+                        data: [4.5, 4.2, 3.8, 3.1, 2.9, 2.5],
+                        borderColor: professionalPalette.warmCoral,
+                        backgroundColor: 'rgba(255, 155, 113, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: chartTooltipConfig
+            });
+        }
+
+        const adherenceCtx = document.getElementById('adherenceChart');
+        if (adherenceCtx) {
+             new Chart(adherenceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Completed Check-ins',
+                        data: [15, 17, 18, 19],
+                        backgroundColor: professionalPalette.warmCoral,
+                        borderRadius: 4
+                    }, {
+                        label: 'Scheduled Check-ins',
+                        data: [21, 21, 21, 21],
+                        backgroundColor: professionalPalette.midGrayBlue,
+                         borderRadius: 4
+                    }]
+                },
+                options: chartTooltipConfig
+            });
+        }
+
+    </script>
+</body>
+</html>

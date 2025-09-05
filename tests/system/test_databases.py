@@ -16,7 +16,7 @@ load_dotenv()
 async def test_postgresql():
     """Test PostgreSQL connection"""
     try:
-        from app.database.postgres_connection import postgres_manager
+        from data_layer.connections.postgres_connection import postgres_manager
 
         await postgres_manager.initialize()
 
@@ -34,7 +34,7 @@ async def test_postgresql():
 async def test_mongodb():
     """Test MongoDB with vector search"""
     try:
-        from app.database.mongo_connection import enhanced_mongo_manager
+        from data_layer.connections.mongo_connection import enhanced_mongo_manager
 
         if not enhanced_mongo_manager.is_connected:
             await enhanced_mongo_manager.connect()
@@ -74,7 +74,7 @@ async def test_mongodb():
 def test_redis():
     """Test Redis connection"""
     try:
-        from app.database.redis_connection import redis_manager
+        from data_layer.connections.redis_connection import redis_manager
 
         redis_manager.initialize()
 
@@ -94,7 +94,7 @@ def test_redis():
 def test_scylladb():
     """Test ScyllaDB connection"""
     try:
-        from app.database.scylla_connection import scylla_manager
+        from data_layer.connections.scylla_connection import scylla_manager
 
         if not scylla_manager.is_connected():
             scylla_manager.connect()

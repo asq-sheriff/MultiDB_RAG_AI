@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MultiDB-Chatbot Test Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f0f8ff; padding: 20px; border-radius: 5px; }
+        .summary { display: flex; justify-content: space-around; margin: 20px 0; }
+        .metric { text-align: center; padding: 15px; border-radius: 5px; }
+        .passed { background: #d4edda; color: #155724; }
+        .failed { background: #f8d7da; color: #721c24; }
+        .skipped { background: #fff3cd; color: #856404; }
+        .results { margin-top: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-left: 4px solid; }
+        .result.passed { border-left-color: #28a745; background: #f8fff9; }
+        .result.failed { border-left-color: #dc3545; background: #fff8f8; }
+        .result.skipped { border-left-color: #ffc107; background: #fffbf0; }
+        .timestamp { color: #666; font-size: 0.9em; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 MultiDB-Chatbot Test Report</h1>
+        <p class="timestamp">Generated: 2025-08-29T18:55:34.841720+00:00</p>
+        <p>Duration: 95.56s</p>
+    </div>
+    
+    <div class="summary">
+        <div class="metric passed">
+            <h3>2</h3>
+            <p>Passed</p>
+        </div>
+        <div class="metric failed">
+            <h3>0</h3>
+            <p>Failed</p>
+        </div>
+        <div class="metric skipped">
+            <h3>0</h3>
+            <p>Skipped</p>
+        </div>
+    </div>
+    
+    <div class="results">
+        <h2>Test Results</h2>
+
+        <div class="result passed">
+            <h3>unit_tests (unit)</h3>
+            <p><strong>Status:</strong> PASSED</p>
+            <p><strong>Duration:</strong> 63.92s</p>
+            <details><summary>Output</summary><pre>============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/asqmac/git-repos/MultiDB-Chatbot/.venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'asyncio': '1.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1'}}
+rootdir: /Users/asqmac/git-repos/MultiDB-Chatbot
+configfile: pytest.ini
+plugins: anyio-4.9.0, asyncio-1.1.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 17 items
+
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_min_max_normalize PASSED [  5%]
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_z_score_normalize PASSED [ 11%]
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_percentile_rank_scores PASSED [ 17%]
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_reciprocal_rank_fusion PASSED [ 23%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_cosine_only_strategy PASSED [ 29%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection PASSED [ 35%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_variance_reduction PASSED [ 41%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_empty_results_handling PASSED [ 47%]
+tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs PASSED [ 52%]
+tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_rerank_results PASSED [ 58%]
+tests/unit/test_advanced_ranking.py::test_integrated_ranking_pipeline PASSED [ 64%]
+tests/unit/test_data_layer.py::test_data_layer_imports PASSED            [ 70%]
+tests/unit/test_data_layer.py::test_ai_services_imports PASSED           [ 76%]
+tests/unit/test_data_layer.py::test_app_services_imports PASSED          [ 82%]
+tests/unit/test_data_layer.py::test_core_imports PASSED                  [ 88%]
+tests/unit/test_data_layer.py::test_async_imports PASSED                 [ 94%]
+tests/unit/test_data_layer.py::test_no_old_imports PASSED                [100%]
+
+- generated xml file: /Users/asqmac/git-repos/MultiDB-Chatbot/test_reports/junit_unit.xml -
+============================= slowest 10 durations =============================
+30.12s setup    tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_min_max_normalize
+4.66s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_cosine_only_strategy
+0.80s call     tests/unit/test_advanced_ranking.py::test_integrated_ranking_pipeline
+0.80s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_variance_reduction
+0.74s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection
+0.70s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_empty_results_handling
+0.68s setup    tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs
+0.66s setup    tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_rerank_results
+0.07s call     tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection
+0.05s call     tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs
+============================= 17 passed in 40.07s ==============================
+</pre></details>
+            
+        </div>
+
+        <div class="result passed">
+            <h3>database_tests (database)</h3>
+            <p><strong>Status:</strong> PASSED</p>
+            <p><strong>Duration:</strong> 31.64s</p>
+            <details><summary>Output</summary><pre>============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/asqmac/git-repos/MultiDB-Chatbot/.venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'asyncio': '1.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1'}}
+rootdir: /Users/asqmac/git-repos/MultiDB-Chatbot
+configfile: pytest.ini
+plugins: anyio-4.9.0, asyncio-1.1.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 4 items
+
+tests/system/test_databases.py::test_postgresql PASSED                   [ 25%]
+tests/system/test_databases.py::test_mongodb PASSED                      [ 50%]
+tests/system/test_databases.py::test_redis PASSED                        [ 75%]
+tests/system/test_databases.py::test_scylladb PASSED                     [100%]
+
+- generated xml file: /Users/asqmac/git-repos/MultiDB-Chatbot/test_reports/junit_database.xml -
+============================= slowest 10 durations =============================
+30.13s setup    tests/system/test_databases.py::test_postgresql
+0.01s call     tests/system/test_databases.py::test_redis
+0.00s teardown tests/system/test_databases.py::test_scylladb
+0.00s teardown tests/system/test_databases.py::test_postgresql
+0.00s call     tests/system/test_databases.py::test_postgresql
+0.00s setup    tests/system/test_databases.py::test_mongodb
+0.00s teardown tests/system/test_databases.py::test_mongodb
+0.00s call     tests/system/test_databases.py::test_mongodb
+0.00s setup    tests/system/test_databases.py::test_redis
+0.00s setup    tests/system/test_databases.py::test_scylladb
+============================== 4 passed in 30.17s ==============================
+</pre></details>
+            
+        </div>
+
+    </div>
+</body>
+</html>

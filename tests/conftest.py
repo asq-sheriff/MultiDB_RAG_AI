@@ -13,23 +13,41 @@ import os
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Load environment configuration FIRST
+from ai_services.shared.utils.env_loader import load_environment, detect_environment, get_demo_database_urls
+
+# Load appropriate environment for tests
+detected_env = detect_environment()
+load_environment(detected_env)
+logging.getLogger(__name__).info(f"Test environment: {detected_env}")
+
 # Set test environment variables BEFORE importing anything else
 os.environ["TESTING"] = "true"
-os.environ["USE_REAL_EMBEDDINGS"] = "0"  # Use mock embeddings for tests
+os.environ["USE_REAL_EMBEDDINGS"] = "1"  # Use real embeddings for AI quality tests
 os.environ["USE_REAL_GENERATION"] = "0"  # Use mock generation for tests
 os.environ["RAG_SYNTHETIC_QUERY_EMBEDDINGS"] = (
-    "1"  # Enable synthetic embeddings for tests
+    "0"  # Disable synthetic embeddings for AI quality tests
 )
+
+# Override with demo database URLs if in demo environment
+if detected_env == "demo":
+    demo_urls = get_demo_database_urls()
+    if demo_urls.get("postgres"):
+        os.environ["DATABASE_URL"] = demo_urls["postgres"]
+    if demo_urls.get("mongodb"):
+        os.environ["MONGODB_URL"] = demo_urls["mongodb"]
+    if demo_urls.get("redis"):
+        os.environ["REDIS_URL"] = demo_urls["redis"]
+    logging.getLogger(__name__).info(f"Using demo database URLs for testing")
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import NullPool
-from app.database.postgres_models import DatabaseBase
-from app.api.main import app
-from app.config import config
+from data_layer.models.postgres.postgres_models import DatabaseBase
+from ai_services.main import app
 
 # Import MongoDB functions
-from app.database.mongo_connection import init_enhanced_mongo, close_enhanced_mongo
+from data_layer.connections.mongo_connection import init_enhanced_mongo, close_enhanced_mongo
 
 # Configure pytest-asyncio
 pytest_plugins = ("pytest_asyncio",)
@@ -51,7 +69,7 @@ async def initialize_services(event_loop):
     """
     Initialize all application services once for the test session.
     """
-    from app.dependencies import reset_services
+    from ai_services.shared.dependencies.dependencies import reset_services
 
     reset_services()
 
@@ -66,7 +84,7 @@ async def initialize_services(event_loop):
 
     # Initialize PostgreSQL
     try:
-        from app.database.postgres_connection import postgres_manager
+        from data_layer.connections.postgres_connection import postgres_manager
 
         await postgres_manager.initialize()
         logger.info("PostgreSQL initialized for tests")
@@ -75,14 +93,15 @@ async def initialize_services(event_loop):
 
     # Initialize Redis (optional)
     try:
-        from app.database.redis_connection import redis_manager
+        from data_layer.connections.redis_connection import redis_manager
 
         redis_manager.initialize()
         logger.info("Redis initialized for tests")
     except Exception as e:
         logger.warning(f"Redis initialization failed (non-critical): {e}")
 
-    from app import dependencies
+    from ai_services.shared.dependencies import dependencies
+    from data_layer.dependencies import get_scylla_manager
 
     services_status = {
         "embedding": False,
@@ -125,27 +144,12 @@ async def initialize_services(event_loop):
     except Exception as e:
         logger.error(f"Chatbot service initialization failed: {e}")
 
-    # Initialize auth/billing services
-    try:
-        billing_service = dependencies.get_billing_service()
-        services_status["billing"] = billing_service is not None
-        logger.info(f"Billing service initialized: {services_status['billing']}")
-    except Exception as e:
-        logger.error(f"Billing service initialization failed: {e}")
-
-    try:
-        auth_service = dependencies.get_auth_service()
-        services_status["auth"] = auth_service is not None
-        logger.info(f"Auth service initialized: {services_status['auth']}")
-    except Exception as e:
-        logger.error(f"Auth service initialization failed: {e}")
-
-    try:
-        user_service = dependencies.get_user_service()
-        services_status["user"] = user_service is not None
-        logger.info(f"User service initialized: {services_status['user']}")
-    except Exception as e:
-        logger.error(f"User service initialization failed: {e}")
+    # Note: auth/billing/user services now handled by Go microservices
+    # These services are no longer available in Python
+    services_status["billing"] = True  # Handled by billing-service-go
+    services_status["auth"] = True     # Handled by auth-rbac-service-go  
+    services_status["user"] = True     # Handled by Go services
+    logger.info("Auth/billing/user services handled by Go microservices")
 
     try:
         multi_db_service = dependencies.get_multi_db_service()
@@ -156,7 +160,7 @@ async def initialize_services(event_loop):
 
     # ScyllaDB is optional
     try:
-        scylla_manager = dependencies.get_scylla_manager()
+        scylla_manager = get_scylla_manager()
         services_status["scylla"] = (
             scylla_manager is not None and scylla_manager.is_connected()
         )
@@ -192,7 +196,7 @@ async def initialize_services(event_loop):
         logger.warning(f"MongoDB cleanup failed: {e}")
 
     try:
-        from app.database.postgres_connection import postgres_manager
+        from data_layer.connections.postgres_connection import postgres_manager
 
         await postgres_manager.close()
         logger.info("PostgreSQL connection closed")
@@ -200,7 +204,7 @@ async def initialize_services(event_loop):
         logger.warning(f"PostgreSQL cleanup failed: {e}")
 
     try:
-        from app.database.redis_connection import redis_manager
+        from data_layer.connections.redis_connection import redis_manager
 
         redis_manager.close()
         logger.info("Redis connection closed")
@@ -218,7 +222,7 @@ async def mongo_connection():
     Ensure MongoDB connection is available for each test.
     This fixture can be used by tests that need MongoDB.
     """
-    from app.database.mongo_connection import get_mongo_manager
+    from data_layer.connections.mongo_connection import get_mongo_manager
 
     try:
         manager = get_mongo_manager()
@@ -231,7 +235,9 @@ async def mongo_connection():
 
 @pytest.fixture(scope="session")
 async def test_engine():
-    """Create a test database engine."""
+    """Create a test database engine using environment-aware configuration."""
+    from ai_services.shared.config.config import config
+    
     # Use a test database
     test_db_name = f"{config.postgresql.database}_test"
 

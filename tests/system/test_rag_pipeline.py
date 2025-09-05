@@ -1,7 +1,7 @@
 """RAG pipeline tests"""
 
 import pytest
-from app.dependencies import (
+from ai_services.shared.dependencies.dependencies import (
     get_chatbot_service,
     get_embedding_service,
     get_knowledge_service,

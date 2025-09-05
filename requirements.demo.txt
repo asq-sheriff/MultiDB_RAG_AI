@@ -1,0 +1,20 @@
+# Demo Environment Dependencies
+# =============================
+# Required packages for interactive demo with real database connections
+
+# Database drivers
+asyncpg>=0.28.0          # PostgreSQL async driver
+pymongo>=4.5.0           # MongoDB driver
+redis>=4.6.0             # Redis client
+scylla-driver>=3.29.0     # Official ScyllaDB driver (optimized)
+
+# Environment management
+python-dotenv>=1.0.0     # Environment variable loading
+
+# Optional enhancements
+colorama>=0.4.6          # Cross-platform terminal colors
+rich>=13.0.0             # Enhanced terminal formatting (optional)
+
+# Data processing (if needed)
+pandas>=1.5.0            # Data analysis (optional)
+numpy>=1.24.0            # Numerical computing (optional)

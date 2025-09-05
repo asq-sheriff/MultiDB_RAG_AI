@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MultiDB-Chatbot Test Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f0f8ff; padding: 20px; border-radius: 5px; }
+        .summary { display: flex; justify-content: space-around; margin: 20px 0; }
+        .metric { text-align: center; padding: 15px; border-radius: 5px; }
+        .passed { background: #d4edda; color: #155724; }
+        .failed { background: #f8d7da; color: #721c24; }
+        .skipped { background: #fff3cd; color: #856404; }
+        .results { margin-top: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-left: 4px solid; }
+        .result.passed { border-left-color: #28a745; background: #f8fff9; }
+        .result.failed { border-left-color: #dc3545; background: #fff8f8; }
+        .result.skipped { border-left-color: #ffc107; background: #fffbf0; }
+        .timestamp { color: #666; font-size: 0.9em; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 MultiDB-Chatbot Test Report</h1>
+        <p class="timestamp">Generated: 2025-08-29T17:15:46.630089+00:00</p>
+        <p>Duration: 96.30s</p>
+    </div>
+    
+    <div class="summary">
+        <div class="metric passed">
+            <h3>1</h3>
+            <p>Passed</p>
+        </div>
+        <div class="metric failed">
+            <h3>1</h3>
+            <p>Failed</p>
+        </div>
+        <div class="metric skipped">
+            <h3>0</h3>
+            <p>Skipped</p>
+        </div>
+    </div>
+    
+    <div class="results">
+        <h2>Test Results</h2>
+
+        <div class="result failed">
+            <h3>unit_tests (unit)</h3>
+            <p><strong>Status:</strong> FAILED</p>
+            <p><strong>Duration:</strong> 64.57s</p>
+            <details><summary>Output</summary><pre>============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/asqmac/git-repos/MultiDB-Chatbot/.venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'asyncio': '1.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1'}}
+rootdir: /Users/asqmac/git-repos/MultiDB-Chatbot
+configfile: pytest.ini
+plugins: anyio-4.9.0, asyncio-1.1.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 56 items
+
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_min_max_normalize PASSED [  1%]
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_z_score_normalize PASSED [  3%]
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_percentile_rank_scores PASSED [  5%]
+tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_reciprocal_rank_fusion PASSED [  7%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_cosine_only_strategy PASSED [  8%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection PASSED [ 10%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_variance_reduction PASSED [ 12%]
+tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_empty_results_handling PASSED [ 14%]
+tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs PASSED [ 16%]
+tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_rerank_results PASSED [ 17%]
+tests/unit/test_advanced_ranking.py::test_integrated_ranking_pipeline PASSED [ 19%]
+tests/unit/test_hipaa_rbac.py::TestAccessDecision::test_access_decision_granted PASSED [ 21%]
+tests/unit/test_hipaa_rbac.py::TestAccessDecision::test_access_decision_denied PASSED [ 23%]
+tests/unit/test_hipaa_rbac.py::TestAccessDecision::test_emergency_access_decision PASSED [ 25%]
+tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_self_access_always_granted PASSED [ 26%]
+tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_emergency_access_for_authorized_roles PASSED [ 28%]
+tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_emergency_access_denied_for_unauthorized_roles PASSED [ 30%]
+tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_access_with_valid_consent PASSED [ 32%]
+tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_access_denied_without_consent FAILED [ 33%]
+tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_minimum_necessary_principle PASSED [ 35%]
+tests/unit/test_hipaa_rbac.py::TestConsentService::test_create_patient_consent_success FAILED [ 37%]
+tests/unit/test_hipaa_rbac.py::TestConsentService::test_create_consent_validation_failure PASSED [ 39%]
+tests/unit/test_hipaa_rbac.py::TestConsentService::test_revoke_consent_success FAILED [ 41%]
+tests/unit/test_hipaa_rbac.py::TestConsentService::test_revoke_consent_unauthorized PASSED [ 42%]
+tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_require_patient_consent_decorator_success FAILED [ 44%]
+tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_require_patient_consent_decorator_failure FAILED [ 46%]
+tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_treatment_access_only_decorator FAILED [ 48%]
+tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_family_care_access_decorator FAILED [ 50%]
+tests/unit/test_hipaa_rbac.py::TestAuditLogging::test_phi_access_logging PASSED [ 51%]
+tests/unit/test_hipaa_rbac.py::TestAuditLogging::test_emergency_access_logging PASSED [ 53%]
+tests/unit/test_rbac.py::TestHealthcareRoleEnum::test_all_roles_defined PASSED [ 55%]
+tests/unit/test_rbac.py::TestRoleMappings::test_healthcare_to_message_mapping_complete PASSED [ 57%]
+tests/unit/test_rbac.py::TestRoleMappings::test_resident_message_roles PASSED [ 58%]
+tests/unit/test_rbac.py::TestRoleMappings::test_care_staff_message_roles PASSED [ 60%]
+tests/unit/test_rbac.py::TestRoleMappings::test_admin_message_roles PASSED [ 62%]
+tests/unit/test_rbac.py::TestRoleMappings::test_role_permissions_complete PASSED [ 64%]
+tests/unit/test_rbac.py::TestRBACManager::test_check_healthcare_role_success PASSED [ 66%]
+tests/unit/test_rbac.py::TestRBACManager::test_check_healthcare_role_failure PASSED [ 67%]
+tests/unit/test_rbac.py::TestRBACManager::test_check_permission_admin PASSED [ 69%]
+tests/unit/test_rbac.py::TestRBACManager::test_check_permission_resident PASSED [ 71%]
+tests/unit/test_rbac.py::TestRBACManager::test_can_access_own_data PASSED [ 73%]
+tests/unit/test_rbac.py::TestRBACManager::test_cannot_access_others_data_as_resident PASSED [ 75%]
+tests/unit/test_rbac.py::TestRBACManager::test_care_staff_can_access_others_data PASSED [ 76%]
+tests/unit/test_rbac.py::TestRBACManager::test_get_allowed_message_roles PASSED [ 78%]
+tests/unit/test_rbac.py::TestRBACManager::test_can_send_message_as_role PASSED [ 80%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_require_healthcare_role_success PASSED [ 82%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_require_healthcare_role_failure PASSED [ 83%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_require_permission_success PASSED [ 85%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_require_permission_failure PASSED [ 87%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_care_team_only_decorator PASSED [ 89%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_admin_only_decorator PASSED [ 91%]
+tests/unit/test_rbac.py::TestRoleDecorators::test_residents_and_family_decorator PASSED [ 92%]
+tests/unit/test_rbac.py::TestPermissionMatrix::test_resident_permissions PASSED [ 94%]
+tests/unit/test_rbac.py::TestPermissionMatrix::test_care_staff_permissions PASSED [ 96%]
+tests/unit/test_rbac.py::TestPermissionMatrix::test_admin_permissions PASSED [ 98%]
+tests/unit/test_rbac.py::TestPermissionMatrix::test_family_member_permissions PASSED [100%]
+
+=================================== FAILURES ===================================
+_______ TestHIPAACompliantRBACManager.test_access_denied_without_consent _______
+tests/unit/test_hipaa_rbac.py:209: in test_access_denied_without_consent
+    assert decision.granted == False
+E   assert True == False
+E    +  where True = <app.core.hipaa_rbac.AccessDecision object at 0x1547418c0>.granted
+____________ TestConsentService.test_create_patient_consent_success ____________
+app/services/consent_service.py:90: in create_patient_consent
+    await self._log_consent_action(
+app/services/consent_service.py:429: in _log_consent_action
+    log_entry = PHIAccessLog(
+.venv/lib/python3.13/site-packages/sqlalchemy/orm/state.py:571: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.13/site-packages/sqlalchemy/orm/state.py:569: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+.venv/lib/python3.13/site-packages/sqlalchemy/orm/decl_base.py:2173: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'log_id' is an invalid keyword argument for PHIAccessLog
+
+During handling of the above exception, another exception occurred:
+tests/unit/test_hipaa_rbac.py:271: in test_create_patient_consent_success
+    consent = await consent_service.create_patient_consent(
+app/services/consent_service.py:99: in create_patient_consent
+    raise ConsentViolationError(f"Failed to create consent: {str(e)}")
+E   app.services.consent_service.ConsentViolationError: Failed to create consent: 'log_id' is an invalid keyword argument for PHIAccessLog
+________________ TestConsentService.test_revoke_consent_success ________________
+app/services/consent_service.py:159: in revoke_consent
+    await self._log_consent_action(
+app/services/consent_service.py:429: in _log_consent_action
+    log_entry = PHIAccessLog(
+.venv/lib/python3.13/site-packages/sqlalchemy/orm/state.py:571: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv/lib/python3.13/site-packages/sqlalchemy/orm/state.py:569: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+.venv/lib/python3.13/site-packages/sqlalchemy/orm/decl_base.py:2173: in _declarative_constructor
+    raise TypeError(
+E   TypeError: 'log_id' is an invalid keyword argument for PHIAccessLog
+
+During handling of the above exception, another exception occurred:
+tests/unit/test_hipaa_rbac.py:328: in test_revoke_consent_success
+    success = await consent_service.revoke_consent(
+app/services/consent_service.py:168: in revoke_consent
+    raise ConsentViolationError(f"Failed to revoke consent: {str(e)}")
+E   app.services.consent_service.ConsentViolationError: Failed to revoke consent: 'log_id' is an invalid keyword argument for PHIAccessLog
+______ TestHIPAADecorators.test_require_patient_consent_decorator_success ______
+tests/unit/test_hipaa_rbac.py:397: in test_require_patient_consent_decorator_success
+    result = await test_endpoint(
+app/core/hipaa_rbac.py:390: in wrapper
+    raise HTTPException(
+E   fastapi.exceptions.HTTPException: 500: Required parameters not found for HIPAA access control
+______ TestHIPAADecorators.test_require_patient_consent_decorator_failure ______
+tests/unit/test_hipaa_rbac.py:433: in test_require_patient_consent_decorator_failure
+    assert exc_info.value.status_code == 403
+E   AssertionError: assert 500 == 403
+E    +  where 500 = HTTPException(status_code=500, detail='Required parameters not found for HIPAA access control').status_code
+E    +    where HTTPException(status_code=500, detail='Required parameters not found for HIPAA access control') = <ExceptionInfo HTTPException(status_code=500, detail='Required parameters not found for HIPAA access control') tblen=2>.value
+___________ TestHIPAADecorators.test_treatment_access_only_decorator ___________
+tests/unit/test_hipaa_rbac.py:451: in test_treatment_access_only_decorator
+    result = await treatment_endpoint(
+app/core/hipaa_rbac.py:390: in wrapper
+    raise HTTPException(
+E   fastapi.exceptions.HTTPException: 500: Required parameters not found for HIPAA access control
+____________ TestHIPAADecorators.test_family_care_access_decorator _____________
+tests/unit/test_hipaa_rbac.py:478: in test_family_care_access_decorator
+    result = await family_endpoint(
+app/core/hipaa_rbac.py:390: in wrapper
+    raise HTTPException(
+E   fastapi.exceptions.HTTPException: 500: Required parameters not found for HIPAA access control
+- generated xml file: /Users/asqmac/git-repos/MultiDB-Chatbot/test_reports/junit_unit.xml -
+============================= slowest 10 durations =============================
+30.25s setup    tests/unit/test_advanced_ranking.py::TestAdvancedScoreNormalizer::test_min_max_normalize
+8.54s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_cosine_only_strategy
+0.79s setup    tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs
+0.77s call     tests/unit/test_advanced_ranking.py::test_integrated_ranking_pipeline
+0.76s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection
+0.75s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_variance_reduction
+0.72s setup    tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_empty_results_handling
+0.67s setup    tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_rerank_results
+0.05s call     tests/unit/test_advanced_ranking.py::TestAdvancedRankingService::test_adaptive_strategy_selection
+0.05s call     tests/unit/test_advanced_ranking.py::TestCrossEncoderService::test_batch_score_pairs
+=========================== short test summary info ============================
+FAILED tests/unit/test_hipaa_rbac.py::TestHIPAACompliantRBACManager::test_access_denied_without_consent - assert True == False
+ +  where True = <app.core.hipaa_rbac.AccessDecision object at 0x1547418c0>.granted
+FAILED tests/unit/test_hipaa_rbac.py::TestConsentService::test_create_patient_consent_success - app.services.consent_service.ConsentViolationError: Failed to create consent: 'log_id' is an invalid keyword argument for PHIAccessLog
+FAILED tests/unit/test_hipaa_rbac.py::TestConsentService::test_revoke_consent_success - app.services.consent_service.ConsentViolationError: Failed to revoke consent: 'log_id' is an invalid keyword argument for PHIAccessLog
+FAILED tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_require_patient_consent_decorator_success - fastapi.exceptions.HTTPException: 500: Required parameters not found for HIPAA access control
+FAILED tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_require_patient_consent_decorator_failure - AssertionError: assert 500 == 403
+ +  where 500 = HTTPException(status_code=500, detail='Required parameters not found for HIPAA access control').status_code
+ +    where HTTPException(status_code=500, detail='Required parameters not found for HIPAA access control') = <ExceptionInfo HTTPException(status_code=500, detail='Required parameters not found for HIPAA access control') tblen=2>.value
+FAILED tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_treatment_access_only_decorator - fastapi.exceptions.HTTPException: 500: Required parameters not found for HIPAA access control
+FAILED tests/unit/test_hipaa_rbac.py::TestHIPAADecorators::test_family_care_access_decorator - fastapi.exceptions.HTTPException: 500: Required parameters not found for HIPAA access control
+======================== 7 failed, 49 passed in 44.68s =========================
+</pre></details>
+            
+        </div>
+
+        <div class="result passed">
+            <h3>database_tests (database)</h3>
+            <p><strong>Status:</strong> PASSED</p>
+            <p><strong>Duration:</strong> 31.73s</p>
+            <details><summary>Output</summary><pre>============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/asqmac/git-repos/MultiDB-Chatbot/.venv/bin/python
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6.1-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.1', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.9.0', 'asyncio': '1.1.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1'}}
+rootdir: /Users/asqmac/git-repos/MultiDB-Chatbot
+configfile: pytest.ini
+plugins: anyio-4.9.0, asyncio-1.1.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 4 items
+
+tests/system/test_databases.py::test_postgresql PASSED                   [ 25%]
+tests/system/test_databases.py::test_mongodb PASSED                      [ 50%]
+tests/system/test_databases.py::test_redis PASSED                        [ 75%]
+tests/system/test_databases.py::test_scylladb PASSED                     [100%]
+
+- generated xml file: /Users/asqmac/git-repos/MultiDB-Chatbot/test_reports/junit_database.xml -
+============================= slowest 10 durations =============================
+30.12s setup    tests/system/test_databases.py::test_postgresql
+0.02s call     tests/system/test_databases.py::test_redis
+0.00s teardown tests/system/test_databases.py::test_scylladb
+0.00s teardown tests/system/test_databases.py::test_postgresql
+0.00s setup    tests/system/test_databases.py::test_mongodb
+0.00s call     tests/system/test_databases.py::test_mongodb
+0.00s call     tests/system/test_databases.py::test_postgresql
+0.00s teardown tests/system/test_databases.py::test_mongodb
+0.00s setup    tests/system/test_databases.py::test_scylladb
+0.00s setup    tests/system/test_databases.py::test_redis
+============================== 4 passed in 30.17s ==============================
+</pre></details>
+            
+        </div>
+
+    </div>
+</body>
+</html>

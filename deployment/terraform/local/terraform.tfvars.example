@@ -1,0 +1,22 @@
+# Example Terraform variables file
+# Copy this to terraform.tfvars and customize as needed
+
+# Database Configuration
+postgres_db = "chatbot_app"
+postgres_user = "chatbot_user" 
+postgres_password = "secure_password"
+
+# Redis Configuration  
+redis_password = ""
+
+# MongoDB Configuration
+mongo_root_username = "root"
+mongo_root_password = "example"
+mongo_replica_set = "mongodb-atlas-local"
+
+# Network Configuration
+network_name = "chatbot_network"
+
+# Resource Limits
+scylla_memory = "750M"
+scylla_smp = 1

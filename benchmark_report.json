@@ -1,0 +1,302 @@
+{
+  "benchmark_info": {
+    "timestamp": "2025-08-31T04:41:11.107560",
+    "version": "1.0.0",
+    "description": "MultiDB-Chatbot AI Quality Benchmark"
+  },
+  "retrieval_metrics": [
+    {
+      "query": "What is artificial intelligence?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 345.4,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "definition",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "How does machine learning work?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 69.2,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "process",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "What are neural networks?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 63.7,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "concept",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "Explain deep learning algorithms",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 58.6,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "technical",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "What are the benefits of AI?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 63.2,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "analysis",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "Can you help me understand data science?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 63.9,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "assistance",
+      "route_used": "auto->hybrid",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "What is natural language processing?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 55.3,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "field",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    },
+    {
+      "query": "How do recommendation systems work?",
+      "documents_retrieved": 0,
+      "answer_length": 0,
+      "relevance_score": 0.0,
+      "coherence_score": 0.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.0,
+      "composite_quality_score": 0.0,
+      "retrieval_latency_ms": 57.7,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 0,
+      "category": "application",
+      "route_used": "auto->semantic",
+      "search_strategy": "unknown"
+    }
+  ],
+  "generation_metrics": [
+    {
+      "query": "What is the difference between AI and machine learning?",
+      "documents_retrieved": 0,
+      "answer_length": 506,
+      "relevance_score": 0.0,
+      "coherence_score": 1.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.656,
+      "composite_quality_score": 0.414,
+      "retrieval_latency_ms": 0,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 1296.4,
+      "category": "comparison",
+      "route_used": "auto->semantic",
+      "generation_strategy": "unknown"
+    },
+    {
+      "query": "How can AI help in healthcare?",
+      "documents_retrieved": 0,
+      "answer_length": 406,
+      "relevance_score": 0.0,
+      "coherence_score": 0.75,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.667,
+      "composite_quality_score": 0.354,
+      "retrieval_latency_ms": 0,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 1098.9,
+      "category": "application",
+      "route_used": "auto->semantic",
+      "generation_strategy": "unknown"
+    },
+    {
+      "query": "What are the ethical concerns with AI?",
+      "documents_retrieved": 0,
+      "answer_length": 388,
+      "relevance_score": 0.0,
+      "coherence_score": 1.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.714,
+      "composite_quality_score": 0.429,
+      "retrieval_latency_ms": 0,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 1067.7,
+      "category": "ethics",
+      "route_used": "auto->semantic",
+      "generation_strategy": "unknown"
+    },
+    {
+      "query": "Explain how neural networks learn",
+      "documents_retrieved": 0,
+      "answer_length": 828,
+      "relevance_score": 0.0,
+      "coherence_score": 0.75,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.6,
+      "composite_quality_score": 0.338,
+      "retrieval_latency_ms": 0,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 2035.0,
+      "category": "explanation",
+      "route_used": "auto->semantic",
+      "generation_strategy": "unknown"
+    },
+    {
+      "query": "What is the future of artificial intelligence?",
+      "documents_retrieved": 0,
+      "answer_length": 557,
+      "relevance_score": 0.0,
+      "coherence_score": 1.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.714,
+      "composite_quality_score": 0.429,
+      "retrieval_latency_ms": 0,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 1414.5,
+      "category": "prediction",
+      "route_used": "auto->semantic",
+      "generation_strategy": "unknown"
+    },
+    {
+      "query": "How do I get started with machine learning?",
+      "documents_retrieved": 0,
+      "answer_length": 340,
+      "relevance_score": 0.0,
+      "coherence_score": 1.0,
+      "faithfulness_score": 0.0,
+      "groundedness_score": 0.5,
+      "composite_quality_score": 0.375,
+      "retrieval_latency_ms": 0,
+      "generation_latency_ms": 0,
+      "total_latency_ms": 1093.0,
+      "category": "guidance",
+      "route_used": "auto->semantic",
+      "generation_strategy": "unknown"
+    }
+  ],
+  "end_to_end_metrics": [],
+  "embedding_metrics": [
+    {
+      "text": "What is artificial intelligence?",
+      "embedding_latency_ms": 60.0,
+      "embedding_dimension": 1024,
+      "embedding_norm": 1.0,
+      "non_zero_components": 1024
+    },
+    {
+      "text": "Machine learning algorithms",
+      "embedding_latency_ms": 58.9,
+      "embedding_dimension": 1024,
+      "embedding_norm": 1.0,
+      "non_zero_components": 1024
+    },
+    {
+      "text": "Deep neural networks",
+      "embedding_latency_ms": 55.6,
+      "embedding_dimension": 1024,
+      "embedding_norm": 1.0,
+      "non_zero_components": 1024
+    },
+    {
+      "text": "Natural language processing",
+      "embedding_latency_ms": 55.9,
+      "embedding_dimension": 1024,
+      "embedding_norm": 1.0,
+      "non_zero_components": 1024
+    },
+    {
+      "text": "Computer vision applications",
+      "embedding_latency_ms": 55.7,
+      "embedding_dimension": 1024,
+      "embedding_norm": 1.0,
+      "non_zero_components": 1024
+    },
+    {
+      "text": "Reinforcement learning systems",
+      "embedding_latency_ms": 56.2,
+      "embedding_dimension": 1024,
+      "embedding_norm": 1.0,
+      "non_zero_components": 1024
+    }
+  ],
+  "overall_performance": {
+    "retrieval_performance": {
+      "avg_relevance_score": 0.0,
+      "avg_latency_ms": 97.1,
+      "queries_processed": 8
+    },
+    "generation_performance": {
+      "avg_coherence_score": 0.917,
+      "avg_faithfulness_score": 0.0,
+      "avg_groundedness_score": 0.642,
+      "avg_composite_quality": 0.39,
+      "avg_latency_ms": 1334.2,
+      "queries_processed": 6
+    },
+    "embedding_performance": {
+      "avg_latency_ms": 57.0,
+      "avg_dimension": 1024,
+      "texts_processed": 6
+    },
+    "overall_quality_score": 0.195,
+    "performance_grade": "D (Needs Improvement)"
+  }
+}

@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 8000
 
 # If your FastAPI app lives at app/api/main.py as `app`, this is correct:
-CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "ai_services.main:app", "--host", "0.0.0.0", "--port", "8000"]

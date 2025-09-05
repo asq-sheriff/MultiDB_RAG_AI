@@ -1,469 +1,277 @@
-# MultiDB Chatbot 🤖 — Production-Ready RAG at Enterprise Scale
-
-<div align="center">
-
-### 🎯 **From POC to Production in 14 Days**
-
-![CI](https://github.com/asq-sheriff/MultiDB-Chatbot/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/Python-3.13-blue)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
-[![Documentation](https://img.shields.io/badge/Docs-100%25-success)](docs/)
-[![Architecture](https://img.shields.io/badge/Design_Doc-100+_pages-orange)](docs/multidb_rag_chatbot_v3.0.md)
-
-**Handles 1M+ Messages/Day** | **<100ms p95 Latency** | **$0.003 per Query at Scale**
-
-</div>
-
+---
+title: MultiDB Therapeutic AI Chatbot
+owner: Platform Engineering Team
+last_updated: 2025-09-01
+status: authoritative
 ---
 
-## 🎯 Why This Architecture Matters
+# MultiDB Therapeutic AI Chatbot
 
-Most RAG implementations fail at scale because they treat production concerns as afterthoughts. This project demonstrates how to build AI systems that actually work in the real world, where you need to handle thousands of concurrent users, control costs, maintain sub-100ms latency, and deploy updates without downtime.
+> **HIPAA-Compliant Therapeutic AI Companion for Senior Care**
 
-**The Problem Space:** Building a chatbot is easy. Building one that scales to millions of users while maintaining performance, controlling costs, and enabling continuous deployment is hard. Here's how traditional approaches fail and how this architecture solves each challenge:
+A production-ready, HIPAA-compliant therapeutic AI platform designed for senior living facilities and Medicare Advantage health plans. Provides emotion-aware conversational support with real-time safety monitoring and crisis intervention capabilities.
 
-| Challenge | Traditional Approach | This Architecture | Impact |
-|-----------|---------------------|-------------------|---------|
-| **Vector Search at Scale** | Force vectors into PostgreSQL | MongoDB Atlas Vector Search (purpose-built) | 10x faster similarity search |
-| **High-throughput Conversation Logs** | Single database for everything | ScyllaDB (1M writes/sec capability) | No bottlenecks at scale |
-| **Zero-downtime Updates** | Complex blue-green deployments | Separate data/serving planes | Deploy new models safely |
-| **Cost Control** | Hope for the best | Built-in quotas + usage tracking | Predictable scaling costs |
-| **Multi-tenancy** | Afterthought | Role-based access from day one | Enterprise-ready |
+## System Overview
 
----
-
-## ✨ What Makes This Special
-
-This isn't another "ChatGPT wrapper" or a Jupyter notebook demo. It's a complete blueprint for production AI systems that demonstrates:
-
-**Architectural Excellence:**
-- **Two-Plane Architecture**: Separating data processing (Dagster) from serving (Ray Serve) enables independent scaling and safe deployments
-- **Database Specialization**: Each database chosen for its strengths - MongoDB for vectors, PostgreSQL for transactions, ScyllaDB for time-series, Redis for caching
-- **Composable Design**: Swap components without rewrites - replace MongoDB with Pinecone or Qwen with Claude, the interfaces remain stable
-
-**Production Readiness:**
-- **Complete Auth System**: JWT authentication with role-based access control and admin privileges
-- **Usage-Based Billing**: Three-tier subscription system with real-time quota enforcement
-- **Operational Excellence**: Health checks, graceful degradation, comprehensive logging, and monitoring hooks
-- **Performance Optimized**: Connection pooling, query caching, and batch processing throughout
-
-**Developer Experience:**
-- **100+ Page Technical Documentation**: Every architectural decision explained
-- **Local-First Development**: Full stack runs locally with Docker Compose
-- **Comprehensive Testing**: Unit, integration, and load tests included
-- **CI/CD Ready**: GitHub Actions configured with quality gates
-
----
-
-## 📊 Performance & Scale
-
-These aren't theoretical numbers. This system has been load-tested under production-like conditions:
-
-```
-Load Test Results (AWS c5.2xlarge):
-├── Concurrent Users: 1,000
-├── Requests/sec: 5,000  
-├── p50 Latency: 45ms
-├── p95 Latency: 95ms
-├── p99 Latency: 150ms
-├── Error Rate: 0.01%
-└── Uptime: 99.99%
-
-Resource Efficiency:
-├── Memory: 4GB (with models loaded)
-├── CPU: 40% average utilization
-├── Cost per 1M queries: $12.50
-├── Embedding Cache Hit Rate: 85%
-└── Vector Search Time: <10ms avg
-
-Scale Metrics:
-├── Documents Processed Daily: 50GB
-├── Conversation History: 1M+ msgs/sec write capability
-├── Vector Dimensions: 768 (all-mpnet-base-v2)
-├── Context Window: 4096 tokens
-└── Concurrent Sessions: 10,000+
-```
-
----
-
-## 🏗️ System Architecture
-
-<details>
-<summary><b>📐 Click to Explore the Full System Architecture</b></summary>
+The MultiDB Therapeutic AI Chatbot is a microservices-based healthcare AI platform that combines **11+ Go microservices** for business logic with **Python AI services** for machine learning workloads. The system uses specialized data stores (PostgreSQL+pgvector, MongoDB, Redis, ScyllaDB) to optimize for both compliance and performance.
 
 ```mermaid
-graph TB
-    subgraph "Client Layer"
-        WEB[Web Apps]
-        MOBILE[Mobile]
-        API_CLIENT[API Clients]
-    end
-    
-    subgraph "API Gateway"
-        LB[Load Balancer<br/>AWS ALB]
-        FASTAPI[FastAPI<br/>+ Auth + Rate Limit]
-    end
-    
-    subgraph "Two-Plane Architecture"
-        subgraph "Data Plane"
-            DAGSTER[Dagster<br/>Asset Orchestration]
-            LOADER[Document Loaders]
-            CHUNKER[Text Splitters]
-            EMBEDDER[Embedding Service<br/>768-dim vectors]
-        end
-        
-        subgraph "Serving Plane"
-            RAY[Ray Serve<br/>Horizontal Scaling]
-            AGENT[LangGraph Agent<br/>Stateful Reasoning]
-            GEN[Qwen3-1.7B<br/>Generation]
-        end
-    end
-    
-    subgraph "Data Layer"
-        MONGO[(MongoDB Atlas<br/>Vector Search)]
-        PG[(PostgreSQL<br/>Users/Billing/RBAC)]
-        SCYLLA[(ScyllaDB<br/>Chat History)]
-        REDIS[(Redis<br/>Session Cache)]
-    end
-    
-    WEB --> LB
-    MOBILE --> LB
-    API_CLIENT --> LB
-    
-    LB --> FASTAPI
-    FASTAPI --> RAY
-    FASTAPI --> DAGSTER
-    
-    RAY --> AGENT
-    AGENT --> GEN
-    AGENT --> MONGO
-    AGENT --> REDIS
-    AGENT --> SCYLLA
-    
-    DAGSTER --> LOADER
-    LOADER --> CHUNKER
-    CHUNKER --> EMBEDDER
-    EMBEDDER --> MONGO
-    
-    FASTAPI --> PG
-    
-    style WEB fill:#e1f5fe
-    style MOBILE fill:#e1f5fe
-    style API_CLIENT fill:#e1f5fe
-    style FASTAPI fill:#fff3e0
-    style RAY fill:#f3e5f5
-    style DAGSTER fill:#e8f5e9
-    style MONGO fill:#ffebee
-    style PG fill:#ffebee
-    style SCYLLA fill:#ffebee
-    style REDIS fill:#ffebee
+flowchart LR
+  subgraph Edge[Edge & Gateway]
+    Client -->|HTTPS/OIDC| API[API Gateway<br/>Go:8090]
+  end
+  
+  subgraph "Go Microservices"
+    API --> AUTH[Auth/RBAC<br/>:8080]
+    API --> CONSENT[Consent<br/>:8083]
+    API --> CHAT[Chat History<br/>:8002]
+    API --> AUDIT[Audit Log<br/>:8084]
+    API --> BILLING[Billing<br/>:8081]
+    API --> EMERGENCY[Emergency<br/>:8082]
+    API --> TASKS[Tasks<br/>:8086]
+    API --> RELATIONS[Relations<br/>:8087]
+    API --> USERS[Users<br/>:8088]
+    API --> SEARCH_GO[Search<br/>:8089]
+    API --> SAFETY_GO[Safety<br/>:8007]
+  end
+  
+  subgraph "Python AI Services"
+    API --> AI_GATEWAY[AI Gateway<br/>Python:8000]
+    AI_GATEWAY --> SEARCH[Search<br/>:8001]
+    AI_GATEWAY --> EMBED[Embedding<br/>:8005]
+    AI_GATEWAY --> GEN[Generation<br/>:8006]
+  end
+  
+  subgraph "Host AI Services"
+    EMBED --> BGE_HOST[BGE Host<br/>:8008]
+    GEN --> QWEN_HOST[Qwen Host<br/>:8007]
+  end
+  
+  subgraph "Data Layer"
+    AUTH --> PG[(PostgreSQL<br/>+pgvector<br/>:5432)]
+    CHAT --> SCY[(ScyllaDB<br/>3-node cluster<br/>:9042-9044)]
+    SEARCH --> MONGO[(MongoDB Atlas<br/>Local:27017)]
+    AI_GATEWAY --> REDIS[(Redis<br/>Cache:6379)]
+    AUDIT --> PG
+  end
+  
+  classDef db fill:#f8f8f8,stroke:#333
+  classDef go fill:#00ADD8,color:#fff
+  classDef python fill:#3776ab,color:#fff
+  classDef ai fill:#4caf50,color:#fff
+  class PG,SCY,MONGO,REDIS db
+  class API,AUTH,CONSENT,CHAT,AUDIT,BILLING,EMERGENCY,TASKS,RELATIONS,USERS,SEARCH_GO,SAFETY_GO go
+  class AI_GATEWAY,SEARCH,EMBED,GEN python
+  class BGE_HOST,QWEN_HOST ai
 ```
 
-</details>
+## Quick Start
 
-The architecture implements a clean separation of concerns where the Data Plane handles all asynchronous processing (ingestion, chunking, embedding) while the Serving Plane manages real-time user interactions. This separation enables independent scaling, blue-green deployments, and fault isolation.
+### Prerequisites
+- Docker and Docker Compose
+- Python 3.11+
+- Go 1.21+ (for microservices development)
+- 8GB RAM minimum, 16GB recommended
 
----
-
-## 🚀 Quick Start (2 Minutes to First Response)
-
-Get the entire system running with just three commands:
+### Development Setup
 
 ```bash
-# 1. Clone and start all services
-git clone https://github.com/asq-sheriff/MultiDB-Chatbot.git && \
-cd MultiDB-Chatbot && \
-docker-compose up -d
+# 1. Clone and setup
+git clone <repository-url>
+cd Lilo_EmotionalAI_Backend
+make setup
 
-# 2. Get your authentication token
-curl -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "testpassword123"}'
+# 2. Deploy infrastructure
+make infrastructure
 
-# 3. Send your first message
-curl -X POST http://localhost:8000/chat/message \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"message": "What databases are best for AI applications?"}'
+# 3. Start all services
+make start
+
+# 4. Verify system health
+make health && make test
 ```
 
-**Want to see it scale?** Run the included load test:
-```bash
-make load-test  # Simulates 1,000 concurrent users
-```
-
----
-
-## 🛠️ Tech Stack Deep Dive
-
-Each technology was chosen for specific strengths after evaluating alternatives:
-
-| Component | Technology | Why This Choice | What We Rejected |
-|-----------|-----------|-----------------|------------------|
-| **Language** | Python 3.13 | AI ecosystem maturity, async support | Node.js (weaker ML libraries) |
-| **Web Framework** | FastAPI | Native async, automatic OpenAPI docs | Flask (no native async), Django (too heavy) |
-| **Vector Database** | MongoDB Atlas | Managed, proven scale, native integration | Pinecone (vendor lock), pgvector (performance) |
-| **User Database** | PostgreSQL 15 | ACID, complex queries, battle-tested | MongoDB (no ACID), MySQL (weaker JSON) |
-| **Time-Series DB** | ScyllaDB 5.2 | C++ rewrite of Cassandra, 10x performance | Cassandra (slower), TimescaleDB (complexity) |
-| **Cache** | Redis 7 | Sub-ms latency, Lua scripting | Memcached (less features), Hazelcast (complexity) |
-| **Embeddings** | Sentence Transformers | Open source, 768-dim quality | OpenAI (cost), Cohere (vendor lock) |
-| **Generation** | Qwen3-1.7B | Size/quality balance, open weights | GPT-3.5 (cost), Llama2-7B (too large) |
-| **Orchestration** | Dagster | Asset-centric, lineage tracking | Airflow (task-centric), Prefect (less mature) |
-| **Serving** | Ray Serve | Actor model, autoscaling | K8s raw (complexity), SageMaker (AWS lock) |
-
----
-
-## 🧠 Key Architectural Decisions
-
-Understanding the "why" behind the architecture is as important as the "what". Here are the critical decisions that shape this system:
-
-### Decision 1: Two-Plane Architecture
-**Context:** RAG systems need to handle both batch processing (indexing documents) and real-time serving (answering queries).
-
-**Decision:** Separate these concerns into distinct planes that can scale independently.
-
-**Consequences:** This separation enables zero-downtime deployments of new models, independent scaling of ingestion vs serving, and fault isolation between batch and real-time operations.
-
-### Decision 2: Multi-Database Strategy
-**Context:** Different data types have different access patterns, consistency requirements, and performance characteristics.
-
-**Decision:** Use specialized databases for each data type rather than forcing everything into one database.
-
-**Consequences:** Higher operational complexity is offset by 10x better performance for each use case, predictable scaling costs, and the ability to swap databases without architectural changes.
-
-### Decision 3: Stateful Agent Design
-**Context:** Conversational AI needs to maintain context across multiple turns while handling thousands of concurrent sessions.
-
-**Decision:** Use Ray Serve's actor model for stateful conversation management rather than stateless functions.
-
-**Consequences:** This enables natural conversations with memory, efficient resource usage through actor pooling, and horizontal scaling with session affinity.
-
----
-
-## 📦 Project Structure
-
-The codebase follows a clean architecture pattern with clear separation of concerns:
-
-```
-multidb-rag-chatbot/
-├── app/                        # Application source code
-│   ├── api/                    # FastAPI routes & OpenAPI schemas
-│   │   ├── endpoints/          # Route handlers (auth, chat, billing)
-│   │   └── main.py            # Application initialization
-│   ├── services/              # Business logic layer
-│   │   ├── chatbot_service.py    # Conversation orchestration
-│   │   ├── knowledge_service.py  # RAG pipeline coordination
-│   │   ├── embedding_service.py  # Vector generation (768-dim)
-│   │   └── billing_service.py    # Quota & usage tracking
-│   ├── agents/                # AI agent definitions
-│   │   └── langgraph/         # Stateful reasoning graphs
-│   ├── data/                  # Data pipeline components
-│   │   ├── loaders/           # Document ingestion
-│   │   └── splitters/         # Chunking strategies
-│   ├── stores/                # Database adapters
-│   │   ├── vector_mongo.py   # MongoDB Atlas integration
-│   │   ├── postgres.py       # SQLAlchemy models
-│   │   ├── scylla.py        # Time-series operations
-│   │   └── redis.py         # Caching layer
-│   └── config/               # Configuration management
-│       └── settings.py       # Pydantic settings
-├── orchestration/            # Orchestration layers
-│   ├── dagster/             # Data plane pipelines
-│   └── ray/                 # Serving plane configuration
-├── tests/                   # Test suites
-│   ├── unit/               # Component tests
-│   ├── integration/        # Service tests
-│   └── load/              # Performance tests
-├── scripts/               # Utility scripts
-│   ├── init_databases.py  # Database setup
-│   └── test_endpoints.py  # API testing
-├── docs/                  # Documentation
-│   ├── architecture/      # System design docs
-│   ├── api/              # API documentation
-│   └── deployment/       # Deployment guides
-├── docker-compose.yml    # Local development stack
-├── Makefile             # Development commands
-└── requirements.txt     # Python dependencies
-```
-
----
-
-## 📚 Documentation
-
-Comprehensive documentation is provided for different audiences:
-
-- **[🏛️ System Architecture](docs/multidb_rag_chatbot_v3.0.md)** — 100+ page deep dive into every architectural decision, complete with diagrams and tradeoff analyses
-- **[📘 Codebase Overview](docs/Codebase_Overview.md)** — Get productive in under 60 minutes with this guide to the code structure and key components
-- **[🗺️ Roadmap & Vision](docs/V1_Summary_and_Roadmap.md)** — Where this project is heading, from current V1 to the envisioned Emotional AI Companion
-- **[🎯 API Reference](http://localhost:8000/docs)** — Interactive OpenAPI documentation (available when running locally)
-
----
-
-## 🔄 Development Workflow
-
-The project includes a complete development environment with hot-reloading and debugging support:
+### Production Deployment
 
 ```bash
-# Local development with hot reload
-make dev
+# Complete deployment validation
+make production-ready
 
-# Run tests with coverage
-make test
+# HIPAA compliance verification (required)
+make test-hipaa
 
-# Format and lint code
-make lint
-
-# Build production image
-make build
-
-# Deploy to staging
-make deploy-staging
-
-# Run performance benchmarks
-make benchmark
+# Interactive demo
+make demo
 ```
 
----
+## Service Directory
 
-## 🚦 Roadmap to Production
+### Go Microservices (Business Logic)
 
-### ✅ Current (V1) - Foundation
-- Multi-database architecture with specialized stores
-- JWT authentication with role-based access control
-- Usage-based billing with three subscription tiers
-- Basic RAG pipeline with MongoDB Atlas vector search
-- Docker Compose for local development
-- Comprehensive test coverage
+| Service | Purpose | Port | APIs | Datastore | Links |
+|---------|---------|------|------|-----------|-------|
+| **API Gateway** | Request routing, authentication proxy | 8090 | REST | Redis (cache) | [README](microservices/api-gateway/README.md) |
+| **Auth/RBAC** | Authentication, role-based access control | 8080 | REST | PostgreSQL | [README](microservices/auth-rbac/README.md) |
+| **Chat History** | Conversation storage, retrieval | 8002 | REST | ScyllaDB | [README](microservices/chat-history/README.md) |
+| **Consent** | HIPAA consent management | 8083 | REST | PostgreSQL | [README](microservices/consent/README.md) |
+| **Audit Logging** | Compliance audit trails | 8084 | REST | PostgreSQL | [README](microservices/audit-logging/README.md) |
+| **Billing** | Usage tracking, subscriptions | 8081 | REST | PostgreSQL | [README](microservices/billing/README.md) |
+| **Emergency Access** | Break-glass access controls | 8082 | REST | PostgreSQL | [README](microservices/emergency-access/README.md) |
+| **Background Tasks** | Async job processing | 8086 | REST | Redis | [README](microservices/background-tasks/README.md) |
+| **Relationship Management** | Patient-provider relationships | 8087 | REST | PostgreSQL | [README](microservices/relationship-management/README.md) |
+| **User Subscriptions** | Subscription lifecycle | 8088 | REST | PostgreSQL | [README](microservices/user-subscription/README.md) |
+| **Search Service (Go)** | Business search operations | 8089 | REST | MongoDB | [README](microservices/search-service/README.md) |
+| **Content Safety (Go)** | PHI detection, emotion analysis | 8007 | REST | Redis | [README](microservices/content-safety/README.md) |
 
-### 🚧 Next (V1.1) - Cloud Native
-- Terraform infrastructure as code for AWS deployment
-- Kubernetes manifests with Helm charts
-- Distributed tracing with OpenTelemetry
-- Prometheus metrics and Grafana dashboards
-- Automated backups and disaster recovery
+### Python AI Services (Machine Learning)
 
-### 🔮 Future (V2.0) - Emotional AI
-- Multi-agent orchestration with specialized personas
-- Long-term memory with episodic summaries
-- Sentiment analysis and emotional intelligence
-- Voice interface with real-time transcription
-- Personalization engine with user preferences
+| Service | Purpose | Port | APIs | Datastore | Links |
+|---------|---------|------|------|-----------|-------|
+| **AI Gateway** | AI orchestration, RAG pipeline | 8000 | REST | All DBs | [README](ai_services/README.md) |
+| **Search Service** | Vector search, knowledge retrieval | 8001 | REST | MongoDB | [README](ai_services/core/README.md) |
+| **Embedding Service** | Text vectorization (BGE) | 8005 | REST | Redis | [README](ai_services/embedding/README.md) |
+| **Generation Service** | Response generation (Qwen) | 8006 | REST | Redis | [README](ai_services/generation/README.md) |
 
----
+### Host AI Services (GPU-Accelerated)
 
-## 🤝 Contributing
+| Service | Purpose | Port | Technology | Acceleration | Links |
+|---------|---------|------|-----------|-------------|-------|
+| **BGE Host Server** | BGE-large-en-v1.5 embeddings | 8008 | PyTorch + MPS | GPU/MPS | [README](host_services/README.md) |
+| **Qwen Host Server** | Qwen2.5-7B generation | 8007 | PyTorch + MPS | GPU/MPS | [README](host_services/README.md) |
 
-We welcome contributions that enhance the production-readiness of this system. Before contributing, please review our architecture principles:
+## Security & Compliance Highlights
 
-1. **Production First**: Every feature must consider scale, monitoring, and failure modes
-2. **Clean Interfaces**: Components should be swappable without architectural changes
-3. **Performance Matters**: All changes must include performance impact analysis
-4. **Documentation Required**: Code without documentation is incomplete
+> **Security:** All PHI data encrypted with AES-256-GCM at rest and TLS 1.3 in transit
 
-To contribute:
+> **Compliance:** Full HIPAA technical safeguards implementation with automated compliance monitoring
+
+> **Access Control:** Role-based access with healthcare-specific roles (Provider, Caregiver, Resident, Admin)
+
+> **Audit Trails:** Immutable audit logs with tamper detection and 6-year retention
+
+### HIPAA Implementation Status
+- ✅ **Access Control (§164.312(a))**: Unique user IDs, automatic logoff, encryption
+- ✅ **Audit Controls (§164.312(b))**: Comprehensive logging with integrity protection
+- ✅ **Integrity (§164.312(c))**: Data versioning with cryptographic signatures
+- ✅ **Authentication (§164.312(d))**: Multi-factor auth for healthcare providers
+- ✅ **Transmission Security (§164.312(e))**: TLS 1.3 with service-to-service encryption
+
+## Documentation Navigation
+
+### 🏗️ Architecture & Design
+- **[System Architecture](docs/architecture/ARCHITECTURE.md)** - Comprehensive system design and C4 model documentation
+- **[Microservices Architecture](docs/architecture/Microservices_Architecture.md)** - Deep dive into 12 Go microservices
+- **[Data Stores and Schemas](docs/architecture/Data_Stores_and_Schemas.md)** - Multi-database architecture guide
+- **[Performance and Caching](docs/architecture/Performance_and_Caching.md)** - Caching strategies and performance optimization
+
+### 🤖 AI/ML Systems
+- **[AI Architecture](docs/ai/AI_Architecture.md)** - AI service orchestration and model implementation
+- **[RAG Pipeline](docs/ai/RAG_Pipeline.md)** - Retrieval-augmented generation architecture
+- **[AI Model Quality](docs/ai/AI_Model_Quality.md)** - Model evaluation and quality metrics
+- **[Safety and Therapeutic Guards](docs/ai/Safety_and_Therapeutic_Guards.md)** - Crisis detection and safety filters
+- **[Search Optimization](docs/ai/Search_Optimization.md)** - Vector search and ranking improvements
+
+### 🔒 Security & Compliance
+- **[Security Architecture](docs/security/Security_Architecture.md)** - Zero-trust security design and authentication flows
+- **[Threat Model](docs/security/Threat_Model.md)** - STRIDE analysis and healthcare-specific threats
+- **[HIPAA Controls Matrix](docs/compliance/HIPAA_Controls_Matrix.md)** - Complete HIPAA technical safeguards mapping
+- **[Audit Trail Guide](docs/compliance/Audit_Trail_Guide.md)** - Comprehensive audit logging implementation
+- **[Consent Management](docs/compliance/Consent_Management.md)** - HIPAA consent workflows and procedures
+- **[PHI Data Inventory](docs/compliance/PHI_Data_Inventory.md)** - Protected health information tracking
+
+### 🖥️ User Interface & Experience
+- **[User Guide](docs/web-ui/User_Guide.md)** - Comprehensive feature usage guide for healthcare staff
+- **[UI Implementation Plan](docs/web-ui/ui_implementation_plan.md)** - Frontend development specifications
+- **[UI Product Requirements](docs/web-ui/ui_prd.md)** - Product requirements for frontend development
+
+### 🔧 Operations & Deployment
+- **[Deployment Guide](docs/operations/Deployment_Guide.md)** - Production deployment procedures
+- **[Runbooks](docs/operations/Runbooks.md)** - Incident response procedures  
+- **[Monitoring Guide](docs/operations/Monitoring_and_Alerting.md)** - Observability and alerting
+- **[Backup & Recovery](docs/operations/Backup_and_Recovery.md)** - Data protection procedures
+
+### 📋 Complete Navigation
+- **[Documentation Index](docs/TOC.md)** - Full documentation table of contents
+- **[Testing Guide](TESTING_GUIDE.md)** - Comprehensive testing framework and procedures
+- **[Glossary](docs/GLOSSARY.md)** - Technical terms and healthcare terminology
+- **[Change Log](docs/CHANGELOG.md)** - System evolution and updates
+
+## Development Commands
+
 ```bash
-# Create a feature branch
-git checkout -b feat/your-feature
+# Daily development workflow
+make dev                 # Start with auto-reload
+make test               # Quick validation tests
+make health             # Service health check
 
-# Run tests and linting
-make test && make lint
+# Infrastructure management  
+make infrastructure     # Deploy databases
+make database          # Run migrations
+make seed              # Seed knowledge base
 
-# Submit PR with:
-# - Performance impact analysis
-# - Test coverage report
-# - Documentation updates
+# Testing & validation
+make test-quick        # Fast feedback (<5 min)
+make test-hipaa        # HIPAA compliance (required)
+make test-all          # Full test suite (15-20 min)
+
+# Service management
+make start             # Start all services
+make stop              # Stop all services
+make restart           # Full restart
+
+# Utilities
+make clean             # Clean caches
+make reset             # Complete system reset
+make docs              # Show documentation links
 ```
 
----
+## System Requirements
 
-## 📊 Performance Benchmarks
+### Production Environment
+- **CPU**: 8+ cores, ARM64 or x86_64
+- **Memory**: 16GB minimum, 32GB recommended
+- **Storage**: 100GB SSD for databases and AI models
+- **Network**: HTTPS with valid TLS certificates
+- **OS**: Linux (Ubuntu 22.04+), macOS (ARM64), Docker support
 
-Regular benchmarks ensure the system maintains its performance characteristics:
+### Development Environment
+- **CPU**: Apple M1/M2 recommended for MPS acceleration
+- **Memory**: 8GB minimum, 16GB recommended  
+- **Storage**: 20GB for local development
+- **Tools**: Docker, Python 3.11+, Go 1.21+, Terraform
 
-```bash
-# Run full benchmark suite
-make benchmark
+## Healthcare Role Support
 
-# Results are saved to benchmarks/results/
-# Compare with previous runs
-python scripts/compare_benchmarks.py
-```
+The system supports healthcare-specific user roles with appropriate access controls:
 
-Latest benchmark results are always available in [`benchmarks/latest.json`](benchmarks/latest.json).
+- **👤 Resident**: Access to personal health data and therapeutic conversations
+- **👨‍⚕️ Health Provider**: Clinical access to assigned patients with audit trails
+- **👩‍⚕️ Care Staff**: Daily care coordination with limited PHI access
+- **👨‍👩‍👧‍👦 Family Member**: Delegated access with explicit patient consent
+- **👨‍💼 System Admin**: Infrastructure management with no clinical data access
 
----
+## Crisis Intervention & Safety
 
-## 🔒 Security Considerations
+> **Emergency Protocols:** Automated crisis detection with immediate escalation to human caregivers and emergency services
 
-This system implements defense in depth:
+The platform includes comprehensive safety measures:
+- **Real-time Crisis Detection**: Sentiment analysis for mental health emergencies
+- **Automated Escalation**: Direct alerts to care coordinators and emergency contacts
+- **PHI Protection**: Automatic detection and masking of personally identifiable information
+- **Therapeutic Guidelines**: AI responses follow evidence-based therapeutic conversation patterns
 
-- **Authentication**: JWT tokens with refresh rotation
-- **Authorization**: Role-based access control with admin privileges
-- **Rate Limiting**: Per-user and per-endpoint limits
-- **Input Validation**: Pydantic models for all inputs
-- **SQL Injection Protection**: Parameterized queries throughout
-- **Secrets Management**: Environment variables with .env files (never committed)
-- **HTTPS**: Enforced in production with cert-manager
+## License
 
----
+MIT License - See [LICENSE](LICENSE) for details.
 
-## 📈 Monitoring & Observability
+## Support
 
-The system is fully instrumented for production monitoring:
-
-- **Metrics**: Prometheus-compatible metrics on `/metrics`
-- **Logging**: Structured JSON logs with correlation IDs
-- **Tracing**: OpenTelemetry spans for request flow
-- **Health Checks**: Liveness and readiness probes
-- **Alerts**: Pre-configured alert rules for common issues
-
----
-
-## 🎓 Learning Resources
-
-If you're learning from this codebase, here's a suggested path:
-
-1. **Start with the architecture**: Read the [system design document](docs/multidb_rag_chatbot_v3.0.md) to understand the big picture
-2. **Run locally**: Use Docker Compose to see the system in action
-3. **Explore the API**: Visit http://localhost:8000/docs for interactive API documentation
-4. **Trace a request**: Follow a chat message from API to response
-5. **Modify and test**: Try adding a new endpoint or service
-6. **Scale testing**: Run the load tests to see performance characteristics
+For technical issues, deployment questions, or security concerns:
+- **Documentation**: Start with [docs/TOC.md](docs/TOC.md)
+- **Development Issues**: Check [troubleshooting guide](docs/operations/Runbooks.md)
+- **Security Issues**: Review [security architecture](docs/security/Security_Architecture.md)
+- **HIPAA Questions**: Consult [compliance controls](docs/compliance/HIPAA_Controls_Matrix.md)
 
 ---
 
-## 📜 License
-
-MIT License - See [LICENSE](LICENSE) file for details.
-
-This project is open source and available for both learning and commercial use.
-
----
-
-## 🙏 Acknowledgments
-
-This project synthesizes best practices from leading AI companies and open-source projects. Special recognition to:
-
-- The Anthropic team for RAG best practices
-- MongoDB for vector search documentation
-- The Ray team for distributed serving patterns
-- The Dagster team for data orchestration principles
-
----
-
-## 📞 Contact & Support
-
-- **GitHub Issues**: For bug reports and feature requests
-- **Discussions**: For architectural questions and best practices
-- **LinkedIn**: [Connect with me](https://www.linkedin.com/in/asheriff) for collaboration opportunities
-- **Email**: For consulting and enterprise support inquiries
-
----
-
-<div align="center">
-
-**Built with ❤️ for the AI community**
-
-*If this project helps you build better AI systems, please star ⭐ the repository*
-
-</div>
+**🏥 Ready for Healthcare Deployment** | **🔒 HIPAA-Compliant** | **🤖 Production AI/ML** | **📊 Enterprise Monitoring**

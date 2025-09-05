@@ -286,3 +286,17 @@ __pycache__/
 .claude
 .claude_ignore
 .claude_workflows
+
+# ================================================================
+# TERRAFORM
+# ================================================================
+terraform/local/terraform.tfvars
+terraform/local/.terraform/
+terraform/local/*.tfstate
+terraform/local/*.tfstate.backup
+terraform/local/.terraform.lock.hcl
+terraform/**/terraform.tfvars
+terraform/**/.terraform/
+terraform/**/*.tfstate
+terraform/**/*.tfstate.backup
+terraform/**/.terraform.lock.hcl

@@ -1,0 +1,609 @@
+.
+├── CLAUDE.md
+├── Dockerfile
+├── LICENSE
+├── Makefile
+├── README.md
+├── TESTING_GUIDE.md
+├── __pycache__
+│   ├── __init__.cpython-313.pyc
+│   └── simple_gradio_ui.cpython-313.pyc
+├── ai_services
+│   ├── README.md
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   └── __init__.cpython-313.pyc
+│   ├── content-safety
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── emotion_analyzer.cpython-313.pyc
+│   │   │   ├── healthcare_encryption.cpython-313.pyc
+│   │   │   ├── main.cpython-313.pyc
+│   │   │   ├── main_hipaa_compliant.cpython-313.pyc
+│   │   │   ├── models.cpython-313.pyc
+│   │   │   ├── phi_analyzer.cpython-313.pyc
+│   │   │   ├── safety_analyzer.cpython-313.pyc
+│   │   │   ├── semantic_clustering.cpython-313.pyc
+│   │   │   └── semantic_safety_analyzer.cpython-313.pyc
+│   │   ├── emotion_analyzer.py
+│   │   ├── healthcare_encryption.py
+│   │   ├── main.py
+│   │   ├── main_hipaa_compliant.py
+│   │   ├── models.py
+│   │   ├── phi_analyzer.py
+│   │   ├── safety_analyzer.py
+│   │   ├── semantic_clustering.py
+│   │   └── semantic_safety_analyzer.py
+│   ├── embedding
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── main_hybrid.cpython-313.pyc
+│   │   │   └── models.cpython-313.pyc
+│   │   ├── core
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   ├── config.cpython-313.pyc
+│   │   │   │   └── redis_client.cpython-313.pyc
+│   │   │   ├── config.py
+│   │   │   └── redis_client.py
+│   │   ├── main_hybrid.py
+│   │   └── models.py
+│   ├── generation
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── main_hybrid.cpython-313.pyc
+│   │   │   ├── models.cpython-313.pyc
+│   │   │   └── semantic_healthcare_engine.cpython-313.pyc
+│   │   ├── core
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   └── config.cpython-313.pyc
+│   │   │   └── config.py
+│   │   ├── main_hybrid.py
+│   │   ├── models.py
+│   │   └── semantic_healthcare_engine.py
+│   ├── search
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── dependencies.cpython-313.pyc
+│   │   │   └── models.cpython-313.pyc
+│   │   ├── core
+│   │   │   ├── __init__.py
+│   │   │   ├── config.py
+│   │   │   └── search_cache.py
+│   │   ├── dependencies.py
+│   │   ├── enhanced_search_router.py
+│   │   ├── intelligent_data_router.py
+│   │   ├── knowledge_service.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── semantic_conversation_search.py
+│   │   └── services
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-313.pyc
+│   │       │   └── search.cpython-313.pyc
+│   │       ├── embedding.py
+│   │       └── search.py
+│   └── shared
+│       ├── __init__.py
+│       ├── caching
+│       ├── config
+│       ├── models
+│       └── utils
+│           ├── advanced_ranking_service.py
+│           ├── chatbot_service.py
+│           └── cross_encoder_service.py
+├── alembic
+│   ├── README
+│   ├── __pycache__
+│   │   └── env.cpython-313.pyc
+│   ├── env.py
+│   ├── script.py.mako
+│   └── versions
+│       ├── 001_add_query_embeddings_table.py
+│       ├── 09dbb6e2818c_initial_phase_1_schema_with_pgvector_.py
+│       ├── __pycache__
+│       │   ├── 001_add_query_embeddings_table.cpython-313.pyc
+│       │   ├── 09dbb6e2818c_initial_phase_1_schema_with_pgvector_.cpython-313.pyc
+│       │   ├── add_healthcare_role_to_users.cpython-313.pyc
+│       │   └── da4078a66da6_add_hipaa_compliant_consent_framework_.cpython-313.pyc
+│       ├── add_healthcare_role_to_users.py
+│       └── da4078a66da6_add_hipaa_compliant_consent_framework_.py
+├── alembic.ini
+├── app
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-313.pyc
+│   │   ├── config.cpython-313.pyc
+│   │   └── dependencies.cpython-313.pyc
+│   ├── api
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   └── main.cpython-313.pyc
+│   │   ├── endpoints
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   ├── auth.cpython-313.pyc
+│   │   │   │   ├── billing.cpython-313.pyc
+│   │   │   │   ├── chat.cpython-313.pyc
+│   │   │   │   ├── search.cpython-313.pyc
+│   │   │   │   └── users.cpython-313.pyc
+│   │   │   ├── chat.py
+│   │   │   └── search.py
+│   │   └── main.py
+│   ├── config.py
+│   ├── core
+│   │   ├── __pycache__
+│   │   │   ├── auth_dependencies.cpython-313.pyc
+│   │   │   ├── hipaa_rbac.cpython-313.pyc
+│   │   │   └── rbac.cpython-313.pyc
+│   │   └── auth_dependencies.py
+│   ├── dependencies.py
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── advanced_ranking_service.cpython-313.pyc
+│   │   │   ├── auth_service.cpython-313.pyc
+│   │   │   ├── background_tasks.cpython-313.pyc
+│   │   │   ├── billing_service.cpython-313.pyc
+│   │   │   ├── chatbot_service.cpython-313.pyc
+│   │   │   ├── consent_service.cpython-313.pyc
+│   │   │   ├── cross_encoder_service.cpython-313.pyc
+│   │   │   ├── embedding_service.cpython-313.pyc
+│   │   │   ├── enhanced_search_router.cpython-313.pyc
+│   │   │   ├── generation_service.cpython-313.pyc
+│   │   │   ├── http_clients.cpython-313.pyc
+│   │   │   ├── intelligent_data_router.cpython-313.pyc
+│   │   │   ├── knowledge_service.cpython-313.pyc
+│   │   │   ├── multi_db_service.cpython-313.pyc
+│   │   │   ├── request_analyzer.cpython-313.pyc
+│   │   │   ├── semantic_conversation_search.cpython-313.pyc
+│   │   │   ├── therapeutic_cache_manager.cpython-313.pyc
+│   │   │   ├── timeout_processor.cpython-313.pyc
+│   │   │   └── user_service.cpython-313.pyc
+│   │   ├── advanced_ranking_service.py
+│   │   ├── chatbot_service.py
+│   │   ├── cross_encoder_service.py
+│   │   ├── enhanced_search_router.py
+│   │   ├── http_clients.py
+│   │   ├── intelligent_data_router.py
+│   │   ├── knowledge_service.py
+│   │   ├── multi_db_service.py
+│   │   ├── semantic_conversation_search.py
+│   │   └── therapeutic_cache_manager.py
+│   └── utils
+│       ├── __init__.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-313.pyc
+│       │   ├── document_processor.cpython-313.pyc
+│       │   ├── seed_data.cpython-313.pyc
+│       │   ├── seed_postgres_hybrid.cpython-313.pyc
+│       │   └── therapeutic_mongodb_seeder.cpython-313.pyc
+│       ├── create_mongodb_vector_indexes.py
+│       ├── document_processor.py
+│       ├── seed_data.py
+│       ├── seed_postgres_hybrid.py
+│       ├── test_therapeutic_cache.py
+│       ├── test_therapeutic_router.py
+│       └── therapeutic_mongodb_seeder.py
+├── config
+│   ├── alembic.ini
+│   ├── config.py
+│   ├── defaults
+│   ├── environments
+│   └── secrets
+├── data
+│   └── docs
+│       ├── Cognitive Stimulation.pdf
+│       ├── Conversation Patterns.md
+│       ├── Cultural Sensitivity.md
+│       ├── Daily Routine Support.pdf
+│       ├── Emotional Support.pdf
+│       ├── Metadata.md
+│       ├── Safety Protocols.md
+│       ├── Scenario Bank 100 Safe T Policy Graph v1.md
+│       ├── Senior Care Enhancement.md
+│       └── Senior Empathic Companion 50 Cards.md
+├── data_layer
+│   ├── README.md
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   └── __init__.cpython-313.pyc
+│   ├── connections
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── mongo_connection.cpython-313.pyc
+│   │   │   ├── postgres_connection.cpython-313.pyc
+│   │   │   ├── redis_connection.cpython-313.pyc
+│   │   │   └── scylla_connection.cpython-313.pyc
+│   │   ├── mongo_connection.py
+│   │   ├── postgres_connection.py
+│   │   ├── redis_connection.py
+│   │   └── scylla_connection.py
+│   ├── migrations
+│   │   ├── README
+│   │   ├── __pycache__
+│   │   │   └── env.cpython-313.pyc
+│   │   ├── env.py
+│   │   ├── script.py.mako
+│   │   └── versions
+│   │       ├── 001_add_query_embeddings_table.py
+│   │       ├── 09dbb6e2818c_initial_phase_1_schema_with_pgvector_.py
+│   │       ├── __pycache__
+│   │       │   ├── 001_add_query_embeddings_table.cpython-313.pyc
+│   │       │   ├── 09dbb6e2818c_initial_phase_1_schema_with_pgvector_.cpython-313.pyc
+│   │       │   ├── add_healthcare_role_to_users.cpython-313.pyc
+│   │       │   └── da4078a66da6_add_hipaa_compliant_consent_framework_.cpython-313.pyc
+│   │       ├── add_healthcare_role_to_users.py
+│   │       └── da4078a66da6_add_hipaa_compliant_consent_framework_.py
+│   ├── models
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   └── __init__.cpython-313.pyc
+│   │   ├── mongodb
+│   │   ├── postgres
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   └── postgres_models.cpython-313.pyc
+│   │   │   └── postgres_models.py
+│   │   ├── redis
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-313.pyc
+│   │   │   │   └── redis_models.cpython-313.pyc
+│   │   │   └── redis_models.py
+│   │   └── scylla
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-313.pyc
+│   │       │   └── scylla_models.cpython-313.pyc
+│   │       └── scylla_models.py
+│   └── repositories
+├── deployment
+│   ├── docker
+│   │   └── docker-compose.hybrid.yml
+│   ├── kubernetes
+│   └── terraform
+│       └── local
+│           ├── main.tf
+│           ├── terraform.tfstate
+│           └── terraform.tfvars.example
+├── dist
+│   └── openapi.json
+├── docker-compose.yml
+├── docs
+│   ├── 00_Current_State_Analysis.md
+│   ├── 00_System_Architecture_Overview.md
+│   ├── 01_RAG_Implementation.md
+│   ├── 02_AI_Model_Quality.md
+│   ├── 03_Data_Stores_and_Schemas.md
+│   ├── 04_Microservices_Architecture.md
+│   ├── 05_Performance_and_Caching.md
+│   ├── 06_Infrastructure_and_IaC.md
+│   ├── 07_Security_Architecture.md
+│   ├── 08_HIPAA_Compliance_Controls.md
+│   ├── 09_Strategic_Technology_Roadmap.md
+│   ├── Business_Value_Proposition.md
+│   ├── Internal_Product_Roadmap.md
+│   ├── Scenario Bank 100 Safe T Policy Graph v1.md
+│   ├── Senior Care Enhancement.md
+│   ├── Senior Empathic Companion 50 Cards.md
+│   ├── Senior Empathic Companion v1.md
+│   ├── User_Guide.md
+│   ├── ai_persona_schema.md
+│   ├── business-context
+│   │   ├── lilo-customer-bvp.md
+│   │   ├── lilo-investor-bvp.md
+│   │   └── lilo-sales-bvp.md
+│   ├── ui_implementation_plan.md
+│   └── ui_prd.md
+├── go.mod
+├── go.sum
+├── host_services
+│   ├── embed_server.py
+│   ├── generation_server.py
+│   ├── requirements_host.txt
+│   └── setup_generation.sh
+├── infrastructure
+│   └── cache
+│       ├── cache.go
+│       ├── cache_metrics.go
+│       ├── cache_metrics_test.go
+│       ├── cache_test.go
+│       └── therapeutic_cache_manager.py
+├── init_database.py
+├── manage-claude-session.sh
+├── microservices
+│   ├── README.md
+│   ├── api-gateway
+│   │   ├── api-gateway-enhanced
+│   │   ├── api-gateway-hipaa
+│   │   ├── api-gateway-service
+│   │   ├── api-gateway-simple
+│   │   ├── api_gateway_test.go
+│   │   ├── coverage.out
+│   │   ├── database.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── handlers.go
+│   │   ├── hipaa_middleware.go
+│   │   ├── interfaces.go
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   ├── middleware.go
+│   │   ├── models.go
+│   │   └── services.go
+│   ├── audit-logging
+│   │   ├── audit-logger
+│   │   ├── audit-logger-fixed
+│   │   ├── audit-logger-new
+│   │   ├── audit-logger-simple
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── main.go
+│   │   └── main_test.go
+│   ├── auth-rbac
+│   │   ├── README.md
+│   │   ├── auth
+│   │   │   ├── handlers.go
+│   │   │   ├── jwt.go
+│   │   │   ├── middleware.go
+│   │   │   └── password.go
+│   │   ├── auth-rbac-service
+│   │   ├── database
+│   │   │   └── connection.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── handlers
+│   │   │   └── handlers.go
+│   │   ├── main.go
+│   │   ├── migrations
+│   │   │   ├── 001_create_users_table.sql
+│   │   │   ├── 002_create_sessions_table.sql
+│   │   │   ├── 003_create_audit_logs_table.sql
+│   │   │   └── run_migrations.go
+│   │   ├── models
+│   │   │   ├── audit.go
+│   │   │   ├── auth.go
+│   │   │   └── user.go
+│   │   ├── rbac
+│   │   │   ├── permissions.go
+│   │   │   └── roles.go
+│   │   └── tests
+│   │       ├── integration_test.go
+│   │       └── rbac_test.go
+│   ├── background-tasks
+│   │   ├── Dockerfile
+│   │   ├── background-tasks-service-go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── handlers.go
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   ├── models.go
+│   │   ├── notifications.go
+│   │   ├── queue.go
+│   │   └── worker.go
+│   ├── billing
+│   │   ├── Dockerfile
+│   │   ├── billing-service-go
+│   │   ├── cache.go
+│   │   ├── cache_metrics.go
+│   │   ├── database.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── handlers.go
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   ├── models.go
+│   │   └── plans.go
+│   ├── chat-history
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   ├── cache_metrics.go
+│   │   ├── database.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── handlers.go
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   ├── models.go
+│   │   ├── service.go
+│   │   └── test-go-db
+│   ├── consent
+│   │   ├── README.md
+│   │   ├── cache.go
+│   │   ├── cache_metrics.go
+│   │   ├── consent-service-go
+│   │   ├── database.go
+│   │   ├── database_test.go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── handlers.go
+│   │   ├── main.go
+│   │   └── main_test.go
+│   ├── emergency-access
+│   │   ├── emergency-access-audit-enhanced
+│   │   ├── emergency-access-monitor
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── main.go
+│   │   └── main_test.go
+│   ├── relationship-management
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   └── relationship-manager
+│   ├── shared
+│   │   ├── database
+│   │   ├── middleware
+│   │   ├── models
+│   │   └── utils
+│   └── user-subscription
+│       ├── Dockerfile
+│       ├── README.md
+│       ├── cache.go
+│       ├── cache_metrics.go
+│       ├── cache_metrics_test.go
+│       ├── cache_test.go
+│       ├── database.go
+│       ├── go.mod
+│       ├── go.sum
+│       ├── handlers.go
+│       ├── main.go
+│       ├── main_test.go
+│       ├── models.go
+│       ├── service.go
+│       └── user-subscription-service
+├── pytest.ini
+├── requirements.txt
+├── run_seeding.py
+├── scripts
+│   ├── __pycache__
+│   │   └── run_comprehensive_tests.cpython-313.pyc
+│   ├── create_hipaa_tables.sql
+│   ├── demo_script.sh
+│   ├── generate_openapi.py
+│   ├── migrate_to_bge_embeddings.py
+│   ├── ops
+│   │   └── docker
+│   │       ├── README.md
+│   │       ├── backup.sh
+│   │       ├── cleanup.sh
+│   │       ├── health-check.sh
+│   │       ├── logs.sh
+│   │       ├── metrics.sh
+│   │       ├── reset.sh
+│   │       ├── restore.sh
+│   │       ├── shutdown.sh
+│   │       └── startup.sh
+│   ├── optimize_mongodb_indexes.py
+│   ├── run_ai_quality_benchmark.py
+│   ├── run_deployment_tests.py
+│   ├── run_go_tests.sh
+│   ├── setup.sh
+│   ├── test_runner.py
+│   ├── validate-changes.sh
+│   └── wait-for-scylla.sh
+├── setup.py
+├── start.py
+├── stop.py
+├── structure.txt
+├── terraform
+│   └── local
+│       ├── README.md
+│       ├── main.tf
+│       ├── outputs.tf
+│       ├── terraform.tfvars
+│       └── terraform.tfvars.example
+├── test.py
+├── test_reports
+│   ├── go_services
+│   ├── junit_database.xml
+│   ├── junit_integration.xml
+│   ├── junit_unit.xml
+│   ├── test_report_20250829_131546.html
+│   ├── test_report_20250829_145047.html
+│   ├── test_report_20250829_145047.json
+│   ├── test_report_20250829_145534.html
+│   ├── test_report_20250829_145534.json
+│   ├── test_report_20250829_150635.html
+│   └── test_run.log
+├── tests
+│   ├── README.md
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-313.pyc
+│   │   ├── conftest.cpython-313-pytest-8.4.1.pyc
+│   │   └── conftest.cpython-313.pyc
+│   ├── conftest.py
+│   ├── integration
+│   │   ├── README.md
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   ├── test_audit_logging_service.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_audit_logging_service.cpython-313.pyc
+│   │   │   ├── test_comprehensive_hipaa_integration.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_deployment_modes.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_document_ingestion.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_emergency_access_audit.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_emergency_access_monitoring.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_full_user_paths.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_hipaa_cache.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_hipaa_cache_e2e.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_hipaa_cache_e2e.cpython-313.pyc
+│   │   │   ├── test_hipaa_cache_pytest.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_hipaa_core_functionality.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_hipaa_decorators.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_hipaa_go_gateway.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_relationship_management.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_safety_emotion_analysis.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_security_hipaa.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_security_improvements_e2e.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_seeding.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_therapeutic_ai_e2e.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_therapeutic_ai_e2e.cpython-313.pyc
+│   │   │   └── test_therapeutic_ai_integration.cpython-313-pytest-8.4.1.pyc
+│   │   ├── run_all_cache_tests.py
+│   │   ├── test_audit_logging_service.py
+│   │   ├── test_comprehensive_hipaa_integration.py
+│   │   ├── test_deployment_modes.py
+│   │   ├── test_document_ingestion.py
+│   │   ├── test_emergency_access_audit.py
+│   │   ├── test_emergency_access_monitoring.py
+│   │   ├── test_full_user_paths.py
+│   │   ├── test_hipaa_cache.py
+│   │   ├── test_hipaa_core_functionality.py
+│   │   ├── test_hipaa_go_gateway.py
+│   │   ├── test_relationship_management.py
+│   │   ├── test_safety_emotion_analysis.py
+│   │   ├── test_security_hipaa.py
+│   │   ├── test_security_improvements_e2e.py
+│   │   ├── test_seeding.py
+│   │   ├── test_therapeutic_ai_e2e.py
+│   │   └── test_therapeutic_ai_integration.py
+│   ├── performance
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-313.pyc
+│   │   │   └── test_service_benchmarks.cpython-313-pytest-8.4.1.pyc
+│   │   └── test_service_benchmarks.py
+│   ├── system
+│   │   ├── __pycache__
+│   │   │   ├── test_ai_quality.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_ai_quality_metrics.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_api.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_databases.cpython-313-pytest-8.4.1.pyc
+│   │   │   ├── test_rag_pipeline.cpython-313-pytest-8.4.1.pyc
+│   │   │   └── test_services.cpython-313-pytest-8.4.1.pyc
+│   │   ├── test_ai_quality.py
+│   │   ├── test_ai_quality_metrics.py
+│   │   ├── test_api.py
+│   │   ├── test_databases.py
+│   │   ├── test_rag_pipeline.py
+│   │   └── test_services.py
+│   └── unit
+│       ├── __pycache__
+│       │   ├── test_advanced_ranking.cpython-313-pytest-8.4.1.pyc
+│       │   ├── test_data_layer.cpython-313-pytest-8.4.1.pyc
+│       │   ├── test_hipaa_rbac.cpython-313-pytest-8.4.1.pyc
+│       │   └── test_rbac.cpython-313-pytest-8.4.1.pyc
+│       ├── test_advanced_ranking.py
+│       └── test_data_layer.py
+└── ~
+
+117 directories, 490 files
