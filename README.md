@@ -1,10 +1,10 @@
 <div align="center">
 
-# MultiDB RAG Chatbot
+# MultiDB-AI
 
 ### Enterprise-Grade AI Architecture for Production Systems
 
-[![CI](https://github.com/asq-sheriff/MultiDB-Chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/asq-sheriff/MultiDB-Chatbot/actions/workflows/ci.yml)
+[![CI](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
@@ -130,8 +130,8 @@ Complete retrieval-augmented generation:
 
 ```bash
 # Clone and start all services
-git clone https://github.com/asq-sheriff/MultiDB-Chatbot.git
-cd MultiDB-Chatbot
+git clone https://github.com/asq-sheriff/MultiDB-AI.git
+cd MultiDB-AI
 docker-compose up -d
 
 # Get authentication token
@@ -175,7 +175,7 @@ make build        # Build production image
 ## Project Structure
 
 ```
-multidb-chatbot/
+multidb-ai/
 ├── app/
 │   ├── api/                 # FastAPI routes and schemas
 │   │   └── endpoints/       # Auth, chat, billing, search
@@ -284,6 +284,6 @@ MIT License — See [LICENSE](LICENSE) for details.
 
 **Built to demonstrate production AI engineering**
 
-[View Documentation](docs/) · [Report Issue](https://github.com/asq-sheriff/MultiDB-Chatbot/issues) · [Connect on LinkedIn](https://www.linkedin.com/in/asheriff)
+[View Documentation](docs/) · [Report Issue](https://github.com/asq-sheriff/MultiDB-AI/issues) · [Connect on LinkedIn](https://www.linkedin.com/in/asheriff)
 
 </div>
