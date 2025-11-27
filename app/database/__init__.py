@@ -1,5 +1,9 @@
 """Database Module Initialization"""
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 try:
     from .mongo_connection import (
         enhanced_mongo_manager,
@@ -9,7 +13,7 @@ try:
         init_mongo,
         close_mongo,
         MongoConfig,
-        AtlasVectorSearchConfig
+        AtlasVectorSearchConfig,
     )
 
     def get_mongo_connection():
@@ -20,7 +24,7 @@ try:
     MONGO_AVAILABLE = True
 
 except ImportError as e:
-    print(f"MongoDB connection not available: {e}")
+    logger.warning(f"MongoDB connection not available: {e}")
 
     class MockMongoManager:
         def __init__(self):
@@ -52,14 +56,20 @@ except ImportError as e:
 try:
     from .postgres_connection import postgres_manager, get_postgres_session
     from .postgres_models import (
-        DatabaseBase, User, Organization, Subscription,
-        UsageRecord, AuditLog, FeatureFlag, SystemSetting
+        DatabaseBase,
+        User,
+        Organization,
+        Subscription,
+        UsageRecord,
+        AuditLog,
+        FeatureFlag,
+        SystemSetting,
     )
 
     POSTGRES_AVAILABLE = True
 
 except ImportError as e:
-    print(f"PostgreSQL not available: {e}")
+    logger.warning(f"PostgreSQL not available: {e}")
     postgres_manager = None
     get_postgres_session = None
     POSTGRES_AVAILABLE = False
@@ -67,14 +77,15 @@ except ImportError as e:
 try:
     from .scylla_connection import scylla_manager, ScyllaDBConnection
     from .scylla_models import (
-        ConversationHistory, KnowledgeBase,
-        EnhancedConversationHistory
+        ConversationHistory,
+        KnowledgeBase,
+        EnhancedConversationHistory,
     )
 
     SCYLLA_AVAILABLE = True
 
 except ImportError as e:
-    print(f"ScyllaDB not available: {e}")
+    logger.warning(f"ScyllaDB not available: {e}")
 
     class MockScyllaManager:
         def __init__(self):
@@ -100,7 +111,7 @@ try:
     REDIS_AVAILABLE = True
 
 except ImportError as e:
-    print(f"Redis not available: {e}")
+    logger.warning(f"Redis not available: {e}")
     redis_manager = None
     get_redis = None
     REDIS_AVAILABLE = False
@@ -110,9 +121,10 @@ def get_seed_function():
     """Lazy load seed function to avoid circular imports"""
     try:
         from app.utils.seed_data import main as seed_main
+
         return seed_main
     except ImportError as e:
-        print(f"Seed data module not available: {e}")
+        logger.warning(f"Seed data module not available: {e}")
         return None
 
 
@@ -125,10 +137,10 @@ def seed_knowledge_base():
         try:
             return asyncio.run(seed_func())
         except Exception as e:
-            print(f"Seeding failed: {e}")
+            logger.error(f"Seeding failed: {e}")
             return False
     else:
-        print("Seeding not available - seed_data module not found")
+        logger.warning("Seeding not available - seed_data module not found")
         return False
 
 
@@ -140,46 +152,52 @@ def get_sample_questions():
         "What is machine learning?",
         "How do I reset my password?",
         "What is the policy for refunds?",
-        "How do I contact support?"
+        "How do I contact support?",
     ]
 
 
 # Export list - without seed_main
 __all__ = [
     # MongoDB
-    'enhanced_mongo_manager',
-    'mongo_manager',
-    'mongo_connection',
-    'get_mongo_connection',
-    'init_enhanced_mongo',
-    'close_enhanced_mongo',
-    'init_mongo',
-    'close_mongo',
-    'MongoConfig',
-    'AtlasVectorSearchConfig',
-    'MONGO_AVAILABLE',
-
+    "enhanced_mongo_manager",
+    "mongo_manager",
+    "mongo_connection",
+    "get_mongo_connection",
+    "init_enhanced_mongo",
+    "close_enhanced_mongo",
+    "init_mongo",
+    "close_mongo",
+    "MongoConfig",
+    "AtlasVectorSearchConfig",
+    "MONGO_AVAILABLE",
     # PostgreSQL
-    'postgres_manager',
-    'get_postgres_session',
-    'DatabaseBase', 'User', 'Organization', 'Subscription',
-    'UsageRecord', 'AuditLog', 'FeatureFlag', 'SystemSetting',
-    'POSTGRES_AVAILABLE',
-
+    "postgres_manager",
+    "get_postgres_session",
+    "DatabaseBase",
+    "User",
+    "Organization",
+    "Subscription",
+    "UsageRecord",
+    "AuditLog",
+    "FeatureFlag",
+    "SystemSetting",
+    "POSTGRES_AVAILABLE",
     # ScyllaDB
-    'scylla_manager',
-    'ScyllaDBConnection',
-    'ConversationHistory', 'KnowledgeBase', 'EnhancedConversationHistory',
-    'SCYLLA_AVAILABLE',
-
+    "scylla_manager",
+    "ScyllaDBConnection",
+    "ConversationHistory",
+    "KnowledgeBase",
+    "EnhancedConversationHistory",
+    "SCYLLA_AVAILABLE",
     # Redis
-    'redis_manager',
-    'get_redis',
-    'CacheModel', 'SessionModel', 'AnalyticsModel',
-    'REDIS_AVAILABLE',
-
+    "redis_manager",
+    "get_redis",
+    "CacheModel",
+    "SessionModel",
+    "AnalyticsModel",
+    "REDIS_AVAILABLE",
     # Seed functions (lazy loaded)
-    'seed_knowledge_base',
-    'get_sample_questions',
-    'get_seed_function'
+    "seed_knowledge_base",
+    "get_sample_questions",
+    "get_seed_function",
 ]

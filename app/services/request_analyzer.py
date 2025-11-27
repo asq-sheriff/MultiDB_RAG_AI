@@ -1,23 +1,26 @@
 """Intelligent request analyzer for automatic background task detection."""
 
-import re
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
 logger = logging.getLogger(__name__)
 
+
 class TaskComplexity(Enum):
     """Task complexity levels"""
-    SIMPLE = "simple"      # < 2 seconds expected
+
+    SIMPLE = "simple"  # < 2 seconds expected
     MODERATE = "moderate"  # 2-10 seconds expected
-    COMPLEX = "complex"    # 10-30 seconds expected
-    HEAVY = "heavy"       # > 30 seconds expected
+    COMPLEX = "complex"  # 10-30 seconds expected
+    HEAVY = "heavy"  # > 30 seconds expected
+
 
 @dataclass
 class RequestAnalysis:
     """Analysis result for a user request"""
+
     complexity: TaskComplexity
     estimated_duration_seconds: int
     should_background: bool
@@ -25,6 +28,7 @@ class RequestAnalysis:
     task_type: Optional[str] = None
     confidence: float = 0.0
     reason: str = ""
+
 
 class RequestAnalyzer:
     """Analyzes user requests to determine processing complexity."""
@@ -34,45 +38,83 @@ class RequestAnalyzer:
         self.complexity_patterns = {
             # Heavy operations (>30 seconds)
             TaskComplexity.HEAVY: {
-                'keywords': [
-                    'full report', 'complete analysis', 'comprehensive report',
-                    'entire database', 'all records', 'full history',
-                    'yearly report', 'annual analysis', 'export everything',
-                    'large dataset', 'big data', 'massive analysis'
+                "keywords": [
+                    "full report",
+                    "complete analysis",
+                    "comprehensive report",
+                    "entire database",
+                    "all records",
+                    "full history",
+                    "yearly report",
+                    "annual analysis",
+                    "export everything",
+                    "large dataset",
+                    "big data",
+                    "massive analysis",
                 ],
-                'data_indicators': [
-                    'years?', 'months?', 'quarters?', 'all time',
-                    'everything', 'entire', 'complete', 'full'
+                "data_indicators": [
+                    "years?",
+                    "months?",
+                    "quarters?",
+                    "all time",
+                    "everything",
+                    "entire",
+                    "complete",
+                    "full",
                 ],
-                'estimated_duration': 45
+                "estimated_duration": 45,
             },
-
             # Complex operations (10-30 seconds)
             TaskComplexity.COMPLEX: {
-                'keywords': [
-                    'analyze', 'analysis', 'report', 'summarize',
-                    'research', 'investigate', 'deep dive', 'study',
-                    'calculate', 'process data', 'generate report',
-                    'trends analysis', 'statistical analysis'
+                "keywords": [
+                    "analyze",
+                    "analysis",
+                    "report",
+                    "summarize",
+                    "research",
+                    "investigate",
+                    "deep dive",
+                    "study",
+                    "calculate",
+                    "process data",
+                    "generate report",
+                    "trends analysis",
+                    "statistical analysis",
                 ],
-                'data_indicators': [
-                    'month', 'quarter', 'week', 'daily', 'detailed',
-                    'complex', 'advanced', 'comprehensive'
+                "data_indicators": [
+                    "month",
+                    "quarter",
+                    "week",
+                    "daily",
+                    "detailed",
+                    "complex",
+                    "advanced",
+                    "comprehensive",
                 ],
-                'estimated_duration': 20
+                "estimated_duration": 20,
             },
-
             # Moderate operations (2-10 seconds)
             TaskComplexity.MODERATE: {
-                'keywords': [
-                    'search', 'find', 'lookup', 'get', 'show',
-                    'list', 'count', 'check', 'verify'
+                "keywords": [
+                    "search",
+                    "find",
+                    "lookup",
+                    "get",
+                    "show",
+                    "list",
+                    "count",
+                    "check",
+                    "verify",
                 ],
-                'data_indicators': [
-                    'recent', 'latest', 'current', 'today', 'this week'
+                "data_indicators": [
+                    "recent",
+                    "latest",
+                    "current",
+                    "today",
+                    "this week",
                 ],
-                'estimated_duration': 5
-            }
+                "estimated_duration": 5,
+            },
         }
 
         # Threshold for automatic background processing (seconds)
@@ -80,20 +122,39 @@ class RequestAnalyzer:
 
         # Keywords that explicitly indicate analysis/research requests
         self.task_type_patterns = {
-            'analysis': [
-                'analyze', 'analysis', 'analytical', 'examine',
-                'data', 'statistics', 'metrics', 'trends',
-                'performance', 'insights', 'patterns'
+            "analysis": [
+                "analyze",
+                "analysis",
+                "analytical",
+                "examine",
+                "data",
+                "statistics",
+                "metrics",
+                "trends",
+                "performance",
+                "insights",
+                "patterns",
             ],
-            'research': [
-                'research', 'investigate', 'study', 'explore',
-                'find information', 'look up', 'discover',
-                'learn about', 'tell me about'
+            "research": [
+                "research",
+                "investigate",
+                "study",
+                "explore",
+                "find information",
+                "look up",
+                "discover",
+                "learn about",
+                "tell me about",
             ],
-            'reporting': [
-                'report', 'summary', 'overview', 'breakdown',
-                'dashboard', 'export', 'generate'
-            ]
+            "reporting": [
+                "report",
+                "summary",
+                "overview",
+                "breakdown",
+                "dashboard",
+                "export",
+                "generate",
+            ],
         }
 
     def analyze_request(self, user_message: str) -> RequestAnalysis:
@@ -124,8 +185,8 @@ class RequestAnalyzer:
 
         # Determine if background processing is recommended
         should_background = (
-                estimated_duration >= self.background_threshold or
-                complexity in [TaskComplexity.COMPLEX, TaskComplexity.HEAVY]
+            estimated_duration >= self.background_threshold
+            or complexity in [TaskComplexity.COMPLEX, TaskComplexity.HEAVY]
         )
 
         # Generate explanation
@@ -140,7 +201,7 @@ class RequestAnalyzer:
             detected_keywords=detected_keywords,
             task_type=task_type,
             confidence=confidence,
-            reason=reason
+            reason=reason,
         )
 
     def _extract_complexity_keywords(self, message: str) -> List[str]:
@@ -149,12 +210,12 @@ class RequestAnalyzer:
 
         for complexity_level, patterns in self.complexity_patterns.items():
             # Check direct keywords
-            for keyword in patterns['keywords']:
+            for keyword in patterns["keywords"]:
                 if keyword in message:
                     found_keywords.append(keyword)
 
             # Check data indicators
-            for indicator in patterns['data_indicators']:
+            for indicator in patterns["data_indicators"]:
                 if indicator in message:
                     found_keywords.append(indicator)
 
@@ -180,7 +241,9 @@ class RequestAnalyzer:
 
         return None
 
-    def _assess_complexity(self, message: str, keywords: List[str]) -> Tuple[TaskComplexity, int]:
+    def _assess_complexity(
+        self, message: str, keywords: List[str]
+    ) -> Tuple[TaskComplexity, int]:
         """Assess the complexity level and estimated duration"""
 
         # Start with simple as default
@@ -192,12 +255,12 @@ class RequestAnalyzer:
             matches = 0
 
             # Count keyword matches
-            for keyword in patterns['keywords']:
+            for keyword in patterns["keywords"]:
                 if keyword in message:
                     matches += 1
 
             # Count data indicator matches
-            for indicator in patterns['data_indicators']:
+            for indicator in patterns["data_indicators"]:
                 if indicator in message:
                     matches += 1
 
@@ -205,14 +268,20 @@ class RequestAnalyzer:
             if matches > 0:
                 if complexity_level.value == "heavy":
                     max_complexity = TaskComplexity.HEAVY
-                    max_duration = patterns['estimated_duration']
+                    max_duration = patterns["estimated_duration"]
                     break  # Heavy is the highest, stop here
-                elif complexity_level.value == "complex" and max_complexity != TaskComplexity.HEAVY:
+                elif (
+                    complexity_level.value == "complex"
+                    and max_complexity != TaskComplexity.HEAVY
+                ):
                     max_complexity = TaskComplexity.COMPLEX
-                    max_duration = patterns['estimated_duration']
-                elif complexity_level.value == "moderate" and max_complexity == TaskComplexity.SIMPLE:
+                    max_duration = patterns["estimated_duration"]
+                elif (
+                    complexity_level.value == "moderate"
+                    and max_complexity == TaskComplexity.SIMPLE
+                ):
                     max_complexity = TaskComplexity.MODERATE
-                    max_duration = patterns['estimated_duration']
+                    max_duration = patterns["estimated_duration"]
 
         # Additional heuristics based on message characteristics
         word_count = len(message.split())
@@ -224,14 +293,18 @@ class RequestAnalyzer:
                 max_duration = 5
 
         # Multiple question marks or specific technical terms
-        if message.count('?') > 1 or any(term in message for term in ['algorithm', 'optimization', 'correlation']):
+        if message.count("?") > 1 or any(
+            term in message for term in ["algorithm", "optimization", "correlation"]
+        ):
             if max_complexity in [TaskComplexity.SIMPLE, TaskComplexity.MODERATE]:
                 max_complexity = TaskComplexity.COMPLEX
                 max_duration = 15
 
         return max_complexity, max_duration
 
-    def _calculate_confidence(self, message: str, keywords: List[str], task_type: Optional[str]) -> float:
+    def _calculate_confidence(
+        self, message: str, keywords: List[str], task_type: Optional[str]
+    ) -> float:
         """Calculate confidence in the complexity assessment"""
         confidence = 0.0
 
@@ -244,18 +317,33 @@ class RequestAnalyzer:
             confidence += 0.3
 
         # Message structure indicators
-        if any(indicator in message for indicator in ['please', 'can you', 'i need', 'help me']):
+        if any(
+            indicator in message
+            for indicator in ["please", "can you", "i need", "help me"]
+        ):
             confidence += 0.1
 
         # Technical specificity
-        technical_terms = ['data', 'analysis', 'report', 'system', 'database', 'performance']
+        technical_terms = [
+            "data",
+            "analysis",
+            "report",
+            "system",
+            "database",
+            "performance",
+        ]
         tech_matches = sum(1 for term in technical_terms if term in message)
         confidence += min(tech_matches * 0.05, 0.2)
 
         return min(confidence, 1.0)
 
-    def _generate_reason(self, complexity: TaskComplexity, duration: int,
-                         keywords: List[str], task_type: Optional[str]) -> str:
+    def _generate_reason(
+        self,
+        complexity: TaskComplexity,
+        duration: int,
+        keywords: List[str],
+        task_type: Optional[str],
+    ) -> str:
         """Generate human-readable explanation for the analysis"""
 
         reasons = []
@@ -273,13 +361,13 @@ class RequestAnalyzer:
             reasons.append(f"Estimated processing time: {duration} seconds")
 
         if keywords:
-            key_terms = ', '.join(keywords[:3])
+            key_terms = ", ".join(keywords[:3])
             reasons.append(f"Detected complexity indicators: {key_terms}")
 
         if task_type:
             reasons.append(f"Identified as {task_type} task")
 
-        return ' | '.join(reasons) if reasons else "Basic complexity assessment"
+        return " | ".join(reasons) if reasons else "Basic complexity assessment"
 
     def should_use_background_processing(self, analysis: RequestAnalysis) -> bool:
         """
@@ -292,7 +380,7 @@ class RequestAnalyzer:
             bool: True if background processing is recommended
         """
         return (
-                analysis.should_background and
-                analysis.confidence >= 0.4 and
-                analysis.complexity in [TaskComplexity.COMPLEX, TaskComplexity.HEAVY]
+            analysis.should_background
+            and analysis.confidence >= 0.4
+            and analysis.complexity in [TaskComplexity.COMPLEX, TaskComplexity.HEAVY]
         )

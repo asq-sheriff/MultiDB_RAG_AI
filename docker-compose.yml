@@ -115,6 +115,29 @@ services:
       interval: 10s
       timeout: 5s
       retries: 12
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: multidb-chatbot
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Sensible defaults for local stack; override via .env if needed
+      MONGODB_URI: "mongodb://root:example@mongodb-atlas-local:27017/?replicaSet=mongodb-atlas-local&directConnection=true"
+      REDIS_URL: "redis://my-redis:6379/0"
+      POSTGRES_DSN: "postgresql+asyncpg://chatbot_user:secure_password@chatbot-postgres:5432/chatbot_app"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      scylla-node1:
+        condition: service_healthy
 
 volumes:
   postgres_data:

@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
@@ -7,7 +6,7 @@ from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
-    AsyncEngine
+    AsyncEngine,
 )
 from sqlalchemy.pool import QueuePool, NullPool
 from sqlalchemy import text
@@ -16,7 +15,6 @@ from app.config import config
 
 logger = logging.getLogger(__name__)
 
-from app.database.postgres_models import DatabaseBase
 
 class PostgreSQLConnectionManager:
     def __init__(self):
@@ -38,29 +36,30 @@ class PostgreSQLConnectionManager:
             }
 
             if use_pooling:
-                engine_kwargs.update({
-                    "poolclass": QueuePool,
-                    "pool_size": config.postgresql.pool_size,
-                    "max_overflow": config.postgresql.max_overflow,
-                    "pool_timeout": config.postgresql.pool_timeout,
-                    "pool_recycle": config.postgresql.pool_recycle,
-                })
+                engine_kwargs.update(
+                    {
+                        "poolclass": QueuePool,
+                        "pool_size": config.postgresql.pool_size,
+                        "max_overflow": config.postgresql.max_overflow,
+                        "pool_timeout": config.postgresql.pool_timeout,
+                        "pool_recycle": config.postgresql.pool_recycle,
+                    }
+                )
             else:
-                engine_kwargs.update({
-                    "poolclass": NullPool,
-                })
+                engine_kwargs.update(
+                    {
+                        "poolclass": NullPool,
+                    }
+                )
 
-            self._engine = create_async_engine(
-                config.postgresql.url,
-                **engine_kwargs
-            )
+            self._engine = create_async_engine(config.postgresql.url, **engine_kwargs)
 
             self._session_factory = async_sessionmaker(
                 self._engine,
                 class_=AsyncSession,
                 expire_on_commit=False,
                 autoflush=True,
-                autocommit=False
+                autocommit=False,
             )
 
             async with self._engine.begin() as conn:
@@ -71,7 +70,9 @@ class PostgreSQLConnectionManager:
 
             self._initialized = True
             pool_info = "with connection pooling" if use_pooling else "with NullPool"
-            logger.info(f"✅ PostgreSQL connected {pool_info}: {config.postgresql.host}:{config.postgresql.port}")
+            logger.info(
+                f"✅ PostgreSQL connected {pool_info}: {config.postgresql.host}:{config.postgresql.port}"
+            )
 
         except Exception as e:
             logger.error(f"❌ Failed to initialize PostgreSQL: {e}")
@@ -120,6 +121,7 @@ class PostgreSQLConnectionManager:
             self._initialized = False
             logger.info("PostgreSQL connections closed")
 
+
 async def get_postgres_session() -> AsyncGenerator[AsyncSession, None]:
     async with postgres_manager.get_session() as session:
         yield session
@@ -127,12 +129,10 @@ async def get_postgres_session() -> AsyncGenerator[AsyncSession, None]:
 
 postgres_manager: Optional[PostgreSQLConnectionManager] = None
 
+
 def get_postgres_manager() -> "PostgreSQLConnectionManager":
     """Initializes and returns the singleton PostgreSQLConnectionManager."""
     global postgres_manager
     if postgres_manager is None:
         postgres_manager = PostgreSQLConnectionManager()
     return postgres_manager
-
-
-

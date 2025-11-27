@@ -272,3 +272,17 @@ auto_generated/
 !docs/**/*.svgbackups/
 .env
 backups/
+
+# local/dev
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
+.env
+
+# Keep AI-assistant config local
+.claude
+.claude_ignore
+.claude_workflows

@@ -1,16 +1,12 @@
 """Enhanced Billing and subscription management service"""
 
-import uuid
 from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional
 import logging
-from decimal import Decimal
 
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.database.postgres_connection import postgres_manager
 from app.database.postgres_models import User, Subscription, UsageRecord
 from app.database.redis_models import BillingCacheModel
 
@@ -33,17 +29,14 @@ class EnhancedBillingService:
                     "messages": 10,
                     "background_tasks": 5,
                     "api_calls": 20,
-                    "storage_mb": 100
+                    "storage_mb": 100,
                 },
                 "features": [
                     "Basic chat functionality",
                     "Standard response time",
-                    "Community support"
+                    "Community support",
                 ],
-                "pricing": {
-                    "monthly": 0,
-                    "yearly": 0
-                }
+                "pricing": {"monthly": 0, "yearly": 0},
             },
             "pro": {
                 "name": "Pro Plan",
@@ -51,18 +44,18 @@ class EnhancedBillingService:
                     "messages": 1000,
                     "background_tasks": 50,
                     "api_calls": 500,
-                    "storage_mb": 1000
+                    "storage_mb": 1000,
                 },
                 "features": [
                     "Advanced chat features",
                     "Priority response time",
                     "Email support",
-                    "Custom integrations"
+                    "Custom integrations",
                 ],
                 "pricing": {
                     "monthly": 2900,  # $29.00 in cents
-                    "yearly": 29000  # $290.00 in cents (2 months free)
-                }
+                    "yearly": 29000,  # $290.00 in cents (2 months free)
+                },
             },
             "enterprise": {
                 "name": "Enterprise Plan",
@@ -70,7 +63,7 @@ class EnhancedBillingService:
                     "messages": 10000,
                     "background_tasks": 1000,
                     "api_calls": 50000,
-                    "storage_mb": 10000
+                    "storage_mb": 10000,
                 },
                 "features": [
                     "Unlimited chat features",
@@ -78,19 +71,17 @@ class EnhancedBillingService:
                     "24/7 phone support",
                     "Custom integrations",
                     "Dedicated account manager",
-                    "SLA guarantee"
+                    "SLA guarantee",
                 ],
                 "pricing": {
                     "monthly": 9900,  # $99.00 in cents
-                    "yearly": 99000  # $990.00 in cents (2 months free)
-                }
-            }
+                    "yearly": 99000,  # $990.00 in cents (2 months free)
+                },
+            },
         }
 
     async def get_active_subscription(
-            self,
-            user: User,
-            session: AsyncSession
+        self, user: User, session: AsyncSession
     ) -> Optional[Subscription]:
         """Get user's active subscription"""
         try:
@@ -100,12 +91,16 @@ class EnhancedBillingService:
                 return cached
 
             # Query database
-            stmt = select(Subscription).where(
-                and_(
-                    Subscription.user_id == user.id,
-                    Subscription.status.in_(["active", "trialing"])
+            stmt = (
+                select(Subscription)
+                .where(
+                    and_(
+                        Subscription.user_id == user.id,
+                        Subscription.status.in_(["active", "trialing"]),
+                    )
                 )
-            ).order_by(Subscription.created_at.desc())
+                .order_by(Subscription.created_at.desc())
+            )
 
             result = await session.execute(stmt)
             subscription = result.scalar_one_or_none()
@@ -125,15 +120,15 @@ class EnhancedBillingService:
             return None
 
     async def create_default_subscription(
-            self,
-            user: User,
-            session: AsyncSession
+        self, user: User, session: AsyncSession
     ) -> Subscription:
         """Create default free subscription for new user"""
         try:
             plan_type = user.subscription_plan or "free"
 
-            plan_def = self._plan_definitions.get(plan_type, self._plan_definitions["free"])
+            plan_def = self._plan_definitions.get(
+                plan_type, self._plan_definitions["free"]
+            )
 
             subscription = Subscription(
                 user_id=user.id,
@@ -144,7 +139,7 @@ class EnhancedBillingService:
                 currency="USD",
                 started_at=datetime.now(timezone.utc),
                 auto_renew=True,
-                limits=plan_def["limits"]
+                limits=plan_def["limits"],
             )
 
             session.add(subscription)
@@ -163,15 +158,13 @@ class EnhancedBillingService:
             raise
 
     async def create_subscription(
-            self,
-            user: User,
-            plan_type: str,
-            billing_cycle: str,
-            session: AsyncSession
+        self, user: User, plan_type: str, billing_cycle: str, session: AsyncSession
     ) -> Optional[Subscription]:
         """Create a new subscription for a user - FIXED method added."""
         try:
-            plan_def = self._plan_definitions.get(plan_type, self._plan_definitions["free"])
+            plan_def = self._plan_definitions.get(
+                plan_type, self._plan_definitions["free"]
+            )
 
             subscription = Subscription(
                 user_id=user.id,
@@ -182,7 +175,7 @@ class EnhancedBillingService:
                 currency="USD",
                 started_at=datetime.now(timezone.utc),
                 auto_renew=True,
-                limits=plan_def["limits"]
+                limits=plan_def["limits"],
             )
 
             # Update user's plan
@@ -205,10 +198,7 @@ class EnhancedBillingService:
             return None
 
     async def can_change_plan(
-            self,
-            user: User,
-            new_plan: str,
-            session: AsyncSession
+        self, user: User, new_plan: str, session: AsyncSession
     ) -> tuple[bool, str]:
         """Check if user can change to a new plan"""
         try:
@@ -246,30 +236,34 @@ class EnhancedBillingService:
             return False, str(e)
 
     async def update_subscription_plan(
-            self,
-            user: User,
-            new_plan: str,
-            billing_cycle: str,
-            session: AsyncSession
+        self, user: User, new_plan: str, billing_cycle: str, session: AsyncSession
     ) -> Optional[Subscription]:
         """Update a user's subscription plan - FIXED to handle cached objects."""
         try:
             # FIXED: Always fetch a fresh subscription from the database
             # Don't rely on get_active_subscription which might return cached data
-            stmt = select(Subscription).where(
-                and_(
-                    Subscription.user_id == user.id,
-                    Subscription.status.in_(["active", "trialing"])
+            stmt = (
+                select(Subscription)
+                .where(
+                    and_(
+                        Subscription.user_id == user.id,
+                        Subscription.status.in_(["active", "trialing"]),
+                    )
                 )
-            ).order_by(Subscription.created_at.desc())
+                .order_by(Subscription.created_at.desc())
+            )
 
             result = await session.execute(stmt)
             current_sub = result.scalar_one_or_none()
 
             if not current_sub:
-                logger.warning(f"No active subscription found for user {user.id} to update.")
+                logger.warning(
+                    f"No active subscription found for user {user.id} to update."
+                )
                 # If no subscription exists, create a new one
-                return await self.create_subscription(user, new_plan, billing_cycle, session)
+                return await self.create_subscription(
+                    user, new_plan, billing_cycle, session
+                )
 
             # Update the existing subscription object's attributes
             current_sub.plan_type = new_plan
@@ -297,9 +291,7 @@ class EnhancedBillingService:
             return None
 
     async def cancel_subscription(
-            self,
-            user: User,
-            session: AsyncSession
+        self, user: User, session: AsyncSession
     ) -> Dict[str, Any]:
         """Cancel user's subscription at end of billing period"""
         try:
@@ -332,7 +324,7 @@ class EnhancedBillingService:
             return {
                 "success": True,
                 "message": "Subscription will be cancelled at end of billing period",
-                "ends_at": subscription.ends_at.isoformat()
+                "ends_at": subscription.ends_at.isoformat(),
             }
 
         except Exception as e:
@@ -341,10 +333,10 @@ class EnhancedBillingService:
             return {"success": False, "reason": str(e)}
 
     async def check_user_quota(
-            self,
-            user: User,
-            resource_type: str,
-            session: AsyncSession  # FIXED: session is required
+        self,
+        user: User,
+        resource_type: str,
+        session: AsyncSession,  # FIXED: session is required
     ) -> Dict[str, Any]:
         """Check if user has quota for a resource - session parameter is required."""
         try:
@@ -359,9 +351,13 @@ class EnhancedBillingService:
 
             # Calculate period end properly
             if now.month == 12:
-                period_end = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+                period_end = datetime(
+                    now.year + 1, 1, 1, tzinfo=timezone.utc
+                ) - timedelta(seconds=1)
             else:
-                period_end = datetime(now.year, now.month + 1, 1, tzinfo=timezone.utc) - timedelta(seconds=1)
+                period_end = datetime(
+                    now.year, now.month + 1, 1, tzinfo=timezone.utc
+                ) - timedelta(seconds=1)
 
             # Get usage for current period
             result = await session.execute(
@@ -369,7 +365,7 @@ class EnhancedBillingService:
                     UsageRecord.user_id == user.id,
                     UsageRecord.resource_type == resource_type,
                     UsageRecord.billing_period_start >= period_start,
-                    UsageRecord.billing_period_end <= period_end
+                    UsageRecord.billing_period_end <= period_end,
                 )
             )
             current_usage = result.scalar() or 0
@@ -387,7 +383,7 @@ class EnhancedBillingService:
                 "max_allowed": max_allowed,
                 "remaining": max(0, max_allowed - int(current_usage)),
                 "period_start": period_start.isoformat(),
-                "period_end": period_end.isoformat()
+                "period_end": period_end.isoformat(),
             }
 
             # Cache the result
@@ -395,7 +391,7 @@ class EnhancedBillingService:
                 str(user.id),
                 resource_type,
                 quota_info,
-                ttl=300  # 5 minutes
+                ttl=300,  # 5 minutes
             )
 
             return quota_info
@@ -409,22 +405,24 @@ class EnhancedBillingService:
                 "max_allowed": 1000,
                 "remaining": 1000,
                 "period_start": datetime.now(timezone.utc).replace(day=1).isoformat(),
-                "period_end": datetime.now(timezone.utc).isoformat()
+                "period_end": datetime.now(timezone.utc).isoformat(),
             }
 
     async def record_usage(
-            self,
-            user: User,
-            resource_type: str,
-            session: AsyncSession,  # FIXED: session is required
-            quantity: int = 1,
-            extra_data: Optional[Dict[str, Any]] = None
+        self,
+        user: User,
+        resource_type: str,
+        session: AsyncSession,  # FIXED: session is required
+        quantity: int = 1,
+        extra_data: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Record resource usage for billing - session parameter is required."""
         try:
             now = datetime.now(timezone.utc)
             period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
+            period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(
+                seconds=1
+            )
 
             usage_record = UsageRecord(
                 user_id=user.id,
@@ -432,7 +430,7 @@ class EnhancedBillingService:
                 quantity=quantity,
                 billing_period_start=period_start,
                 billing_period_end=period_end,
-                extra_data=extra_data or {}
+                extra_data=extra_data or {},
             )
 
             session.add(usage_record)
@@ -441,7 +439,9 @@ class EnhancedBillingService:
             # Invalidate quota cache
             await self.cache.invalidate_quota_cache(str(user.id), resource_type)
 
-            logger.debug(f"Recorded usage: {quantity} {resource_type} for user {user.email}")
+            logger.debug(
+                f"Recorded usage: {quantity} {resource_type} for user {user.email}"
+            )
             return True
 
         except Exception as e:
@@ -452,7 +452,7 @@ class EnhancedBillingService:
     async def get_usage_summary(
         self,
         user: User,
-        session: AsyncSession  # FIXED: session is required
+        session: AsyncSession,  # FIXED: session is required
     ) -> Dict[str, Any]:
         """Get usage summary for user dashboard - session parameter is required."""
         try:
@@ -466,18 +466,25 @@ class EnhancedBillingService:
 
             # Calculate period end properly
             import calendar
+
             last_day = calendar.monthrange(now.year, now.month)[1]
-            period_end = now.replace(day=last_day, hour=23, minute=59, second=59, microsecond=999999)
+            period_end = now.replace(
+                day=last_day, hour=23, minute=59, second=59, microsecond=999999
+            )
 
             # Get all usage for current period
-            usage_query = select(
-                UsageRecord.resource_type,
-                func.coalesce(func.sum(UsageRecord.quantity), 0).label('total')
-            ).where(
-                UsageRecord.user_id == user.id,
-                UsageRecord.billing_period_start >= period_start,
-                UsageRecord.billing_period_end <= period_end
-            ).group_by(UsageRecord.resource_type)
+            usage_query = (
+                select(
+                    UsageRecord.resource_type,
+                    func.coalesce(func.sum(UsageRecord.quantity), 0).label("total"),
+                )
+                .where(
+                    UsageRecord.user_id == user.id,
+                    UsageRecord.billing_period_start >= period_start,
+                    UsageRecord.billing_period_end <= period_end,
+                )
+                .group_by(UsageRecord.resource_type)
+            )
 
             result = await session.execute(usage_query)
             usage_data = {}
@@ -494,11 +501,13 @@ class EnhancedBillingService:
                 "messages_this_month": usage_data.get("messages", 0),
                 "background_tasks_this_month": usage_data.get("background_tasks", 0),
                 "api_calls_this_month": usage_data.get("api_calls", 0),
-                "quota_remaining": max(0, limits.get("messages", 0) - usage_data.get("messages", 0)),
+                "quota_remaining": max(
+                    0, limits.get("messages", 0) - usage_data.get("messages", 0)
+                ),
                 "limits": limits,
                 "period_start": period_start.isoformat(),
                 "period_end": period_end.isoformat(),
-                "plan_type": plan_type
+                "plan_type": plan_type,
             }
 
             # Cache the summary
@@ -510,9 +519,7 @@ class EnhancedBillingService:
             return summary
 
         except Exception as e:
-            logger.error(f"Failed to get usage summary: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"Failed to get usage summary: {e}", exc_info=True)
 
             # Return safe defaults on error
             return {
@@ -523,31 +530,31 @@ class EnhancedBillingService:
                 "limits": self._get_plan_limits(user.subscription_plan or "free"),
                 "period_start": datetime.now(timezone.utc).replace(day=1).isoformat(),
                 "period_end": datetime.now(timezone.utc).isoformat(),
-                "plan_type": user.subscription_plan or "free"
+                "plan_type": user.subscription_plan or "free",
             }
 
     async def get_billing_history(
-            self,
-            user: User,
-            session: AsyncSession,
-            limit: int = 10,
-            offset: int = 0
+        self, user: User, session: AsyncSession, limit: int = 10, offset: int = 0
     ) -> Dict[str, Any]:
         """Get user's billing history"""
         try:
             # Get all subscriptions
-            stmt = select(Subscription).where(
-                Subscription.user_id == user.id
-            ).order_by(
-                Subscription.created_at.desc()
-            ).limit(limit).offset(offset)
+            stmt = (
+                select(Subscription)
+                .where(Subscription.user_id == user.id)
+                .order_by(Subscription.created_at.desc())
+                .limit(limit)
+                .offset(offset)
+            )
 
             result = await session.execute(stmt)
             subscriptions = result.scalars().all()
 
             # Count total
-            count_stmt = select(func.count()).select_from(Subscription).where(
-                Subscription.user_id == user.id
+            count_stmt = (
+                select(func.count())
+                .select_from(Subscription)
+                .where(Subscription.user_id == user.id)
             )
             total_result = await session.execute(count_stmt)
             total = total_result.scalar()
@@ -555,31 +562,30 @@ class EnhancedBillingService:
             # Format history items
             items = []
             for sub in subscriptions:
-                items.append({
-                    "date": sub.created_at,
-                    "description": f"{sub.plan_type.title()} Plan - {sub.billing_cycle.title()}",
-                    "amount_cents": sub.amount_cents,
-                    "currency": sub.currency,
-                    "status": sub.status,
-                    "invoice_url": None  # Would be populated with actual invoice URLs
-                })
+                items.append(
+                    {
+                        "date": sub.created_at,
+                        "description": f"{sub.plan_type.title()} Plan - {sub.billing_cycle.title()}",
+                        "amount_cents": sub.amount_cents,
+                        "currency": sub.currency,
+                        "status": sub.status,
+                        "invoice_url": None,  # Would be populated with actual invoice URLs
+                    }
+                )
 
-            return {
-                "total": total,
-                "items": items
-            }
+            return {"total": total, "items": items}
 
         except Exception as e:
             logger.error(f"Failed to get billing history: {e}")
             return {"total": 0, "items": []}
 
     async def get_detailed_usage(
-            self,
-            user: User,
-            session: AsyncSession,
-            start_date: Optional[datetime] = None,
-            end_date: Optional[datetime] = None,
-            resource_type: Optional[str] = None
+        self,
+        user: User,
+        session: AsyncSession,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        resource_type: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Get detailed usage breakdown"""
         try:
@@ -595,16 +601,18 @@ class EnhancedBillingService:
             conditions = [
                 UsageRecord.user_id == user.id,
                 UsageRecord.created_at >= start_date,
-                UsageRecord.created_at <= end_date
+                UsageRecord.created_at <= end_date,
             ]
 
             if resource_type:
                 conditions.append(UsageRecord.resource_type == resource_type)
 
             # Get usage records
-            stmt = select(UsageRecord).where(
-                and_(*conditions)
-            ).order_by(UsageRecord.created_at.desc())
+            stmt = (
+                select(UsageRecord)
+                .where(and_(*conditions))
+                .order_by(UsageRecord.created_at.desc())
+            )
 
             result = await session.execute(stmt)
             records = result.scalars().all()
@@ -613,56 +621,49 @@ class EnhancedBillingService:
             aggregated = {}
             for record in records:
                 if record.resource_type not in aggregated:
-                    aggregated[record.resource_type] = {
-                        "total": 0,
-                        "records": []
-                    }
+                    aggregated[record.resource_type] = {"total": 0, "records": []}
 
                 aggregated[record.resource_type]["total"] += record.quantity
-                aggregated[record.resource_type]["records"].append({
-                    "timestamp": record.created_at.isoformat(),
-                    "quantity": record.quantity,
-                    "metadata": record.extra_data
-                })
+                aggregated[record.resource_type]["records"].append(
+                    {
+                        "timestamp": record.created_at.isoformat(),
+                        "quantity": record.quantity,
+                        "metadata": record.extra_data,
+                    }
+                )
 
             return {
                 "start_date": start_date.isoformat(),
                 "end_date": end_date.isoformat(),
                 "usage_by_type": aggregated,
-                "total_records": len(records)
+                "total_records": len(records),
             }
 
         except Exception as e:
             logger.error(f"Failed to get detailed usage: {e}")
-            return {
-                "error": str(e),
-                "usage_by_type": {},
-                "total_records": 0
-            }
+            return {"error": str(e), "usage_by_type": {}, "total_records": 0}
 
     def get_available_plans(self) -> Dict[str, Any]:
         """Get all available subscription plans with details"""
         plans = []
         for plan_id, plan_data in self._plan_definitions.items():
-            plans.append({
-                "id": plan_id,
-                "name": plan_data["name"],
-                "limits": plan_data["limits"],
-                "features": plan_data["features"],
-                "pricing": plan_data["pricing"]
-            })
+            plans.append(
+                {
+                    "id": plan_id,
+                    "name": plan_data["name"],
+                    "limits": plan_data["limits"],
+                    "features": plan_data["features"],
+                    "pricing": plan_data["pricing"],
+                }
+            )
 
-        return {
-            "plans": plans,
-            "currency": "USD"
-        }
+        return {"plans": plans, "currency": "USD"}
 
     def _get_plan_limits(self, plan_type: str) -> Dict[str, int]:
         """Get resource limits for subscription plan"""
-        return self._plan_definitions.get(
-            plan_type,
-            self._plan_definitions["free"]
-        )["limits"]
+        return self._plan_definitions.get(plan_type, self._plan_definitions["free"])[
+            "limits"
+        ]
 
     def _is_downgrade(self, current_plan: str, new_plan: str) -> bool:
         """Check if plan change is a downgrade"""
@@ -670,10 +671,7 @@ class EnhancedBillingService:
         return plan_hierarchy.get(new_plan, 0) < plan_hierarchy.get(current_plan, 0)
 
     async def _check_downgrade_eligibility(
-            self,
-            user: User,
-            current_plan: str,
-            new_plan: str
+        self, user: User, current_plan: str, new_plan: str
     ) -> bool:
         """Check if user's current usage allows downgrade"""
         try:
@@ -685,7 +683,7 @@ class EnhancedBillingService:
             for resource, current_usage in [
                 ("messages", usage_summary["messages_this_month"]),
                 ("background_tasks", usage_summary["background_tasks_this_month"]),
-                ("api_calls", usage_summary["api_calls_this_month"])
+                ("api_calls", usage_summary["api_calls_this_month"]),
             ]:
                 if current_usage > new_limits.get(resource, 0):
                     return False
@@ -701,8 +699,10 @@ class EnhancedBillingService:
         plan_def = self._plan_definitions.get(plan_type, self._plan_definitions["free"])
         return plan_def["pricing"][billing_cycle]
 
+
 # Global billing service instance
 billing_service: Optional[EnhancedBillingService] = None
+
 
 def get_billing_service() -> EnhancedBillingService:
     """Get or create the billing service singleton."""
@@ -710,6 +710,7 @@ def get_billing_service() -> EnhancedBillingService:
     if billing_service is None:
         billing_service = EnhancedBillingService()
     return billing_service
+
 
 # For backward compatibility
 def reset_billing_service():

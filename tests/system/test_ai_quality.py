@@ -5,17 +5,21 @@ import logging
 import hashlib
 import math
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List
 from bson import ObjectId
 
 import pytest
 
-from app.database.mongo_connection import init_enhanced_mongo, get_mongo_manager, close_enhanced_mongo
+from app.database.mongo_connection import (
+    init_enhanced_mongo,
+    get_mongo_manager,
+    close_enhanced_mongo,
+)
 from app.dependencies import (
     get_multi_db_service,
     get_chatbot_service,
     get_embedding_service,
-    get_knowledge_service
+    get_knowledge_service,
 )
 from app.services.knowledge_service import KnowledgeService
 
@@ -27,7 +31,7 @@ class TestAIQuality:
 
     @pytest.fixture(autouse=True)
     async def setup(self):
-        """Setup before each test method - FIXED to use async fixture"""
+        """Setup before each test method"""
         # Initialize MongoDB connection for this test
         await init_enhanced_mongo()
 
@@ -39,7 +43,9 @@ class TestAIQuality:
         embedding_service = get_embedding_service()
         if embedding_service:
             self.knowledge_service = KnowledgeService(
-                query_embedder=embedding_service.embed_query if embedding_service else None
+                query_embedder=embedding_service.embed_query
+                if embedding_service
+                else None
             )
         else:
             self.knowledge_service = get_knowledge_service()
@@ -102,7 +108,7 @@ class TestAIQuality:
                 Security measures include biometric authentication and encryption.""",
                 "chunk_index": 0,
                 "category": "technical",
-                "metadata": {"test": True}
+                "metadata": {"test": True},
             },
             {
                 "title": "Blue Rocket Security Protocols",
@@ -112,8 +118,8 @@ class TestAIQuality:
                 All personnel must undergo security clearance verification.""",
                 "chunk_index": 0,
                 "category": "security",
-                "metadata": {"test": True}
-            }
+                "metadata": {"test": True},
+            },
         ]
 
         # Get embedding service if available
@@ -155,7 +161,7 @@ class TestAIQuality:
                     "processing_status": "completed",
                     "source": "test_setup",
                     "ingested_at": datetime.utcnow(),
-                    "metadata": chunk_data.get("metadata", {})
+                    "metadata": chunk_data.get("metadata", {}),
                 }
 
                 await documents_coll.insert_one(doc_payload)
@@ -173,7 +179,7 @@ class TestAIQuality:
                     "tags": [],
                     "source": "test",
                     "ingested_at": datetime.utcnow(),
-                    "metadata": chunk_data.get("metadata", {})
+                    "metadata": chunk_data.get("metadata", {}),
                 }
 
                 result = await embeddings_coll.insert_one(emb_doc)
@@ -196,16 +202,14 @@ class TestAIQuality:
         try:
             # Check if text index exists
             indexes = await embeddings_coll.list_indexes().to_list(None)
-            has_text_index = any(
-                idx.get('textIndexVersion') for idx in indexes
-            )
+            has_text_index = any(idx.get("textIndexVersion") for idx in indexes)
 
             if not has_text_index:
                 await embeddings_coll.create_index(
                     [("title", "text"), ("content", "text")],
                     name="text_title_content",
                     default_language="english",
-                    weights={"title": 3, "content": 1}
+                    weights={"title": 3, "content": 1},
                 )
                 logger.info("Text index created")
             else:
@@ -218,7 +222,9 @@ class TestAIQuality:
             {"content": {"$regex": "blue rocket", "$options": "i"}}
         ).to_list(5)
 
-        logger.info(f"Quick search test found {len(test_results)} documents with 'blue rocket'")
+        logger.info(
+            f"Quick search test found {len(test_results)} documents with 'blue rocket'"
+        )
 
         return stored_count > 0
 
@@ -238,21 +244,21 @@ class TestAIQuality:
                 "scylla_key": "test_faq_1",
                 "question": "What is the secret code for the blue rocket?",
                 "answer": "The secret code for the blue rocket is 9b752c8a. This code is highly confidential and should only be shared with authorized personnel.",
-                "metadata": {"test": True}
+                "metadata": {"test": True},
             },
             {
                 "scylla_key": "test_faq_2",
                 "question": "What security measures are in place for the blue rocket mission?",
                 "answer": "The blue rocket mission has comprehensive security measures including biometric authentication, encrypted communications, 24/7 monitoring, and the secret code 9b752c8a for access control.",
-                "metadata": {"test": True}
-            }
+                "metadata": {"test": True},
+            },
         ]
 
         # Get embedding service
         embedding_service = None
         try:
             embedding_service = get_embedding_service()
-        except:
+        except Exception:
             pass
 
         stored_count = 0
@@ -263,7 +269,7 @@ class TestAIQuality:
             if embedding_service:
                 try:
                     embedding = await embedding_service.embed_query(embedding_text)
-                except:
+                except Exception:
                     embedding = self._generate_synthetic_embedding(embedding_text)
             else:
                 embedding = self._generate_synthetic_embedding(embedding_text)
@@ -280,7 +286,7 @@ class TestAIQuality:
                 "version": 1,
                 "updated_at": datetime.utcnow(),
                 "last_synced_at": datetime.utcnow(),
-                "metadata": faq.get("metadata", {})
+                "metadata": faq.get("metadata", {}),
             }
 
             result = await kv_coll.insert_one(kv_doc)
@@ -291,14 +297,14 @@ class TestAIQuality:
         # Create text index for knowledge_vectors if needed
         try:
             indexes = await kv_coll.list_indexes().to_list(None)
-            has_text_index = any(idx.get('textIndexVersion') for idx in indexes)
+            has_text_index = any(idx.get("textIndexVersion") for idx in indexes)
 
             if not has_text_index:
                 await kv_coll.create_index(
                     [("question", "text"), ("answer", "text")],
                     name="kv_text_q_a",
                     default_language="english",
-                    weights={"question": 4, "answer": 1}
+                    weights={"question": 4, "answer": 1},
                 )
                 logger.info("Knowledge vectors text index created")
         except Exception as e:
@@ -319,12 +325,12 @@ class TestAIQuality:
         """Test that the RAG pipeline retrieves relevant documents"""
         # Test document retrieval
         results = await self.knowledge_service.search_router(
-            query="blue rocket secret code",
-            top_k=5,
-            route="auto"
+            query="blue rocket secret code", top_k=5, route="auto"
         )
 
-        assert len(results.get("results", [])) > 0, "Should find at least one relevant document"
+        assert len(results.get("results", [])) > 0, (
+            "Should find at least one relevant document"
+        )
 
         # Check that retrieved content contains expected information
         found_relevant = False
@@ -334,16 +340,17 @@ class TestAIQuality:
                 found_relevant = True
                 break
 
-        assert found_relevant, "Should find documents containing the secret code or related content"
+        assert found_relevant, (
+            "Should find documents containing the secret code or related content"
+        )
 
     @pytest.mark.asyncio
     async def test_generation_quality(self):
         """Test that the generated answer contains the unique fact from documents"""
-        # FIXED: Use the correct method name 'answer_user_message' instead of 'process_message'
         response = await self.chatbot_service.answer_user_message(
             user_id="test_user",
             message="What is the secret code for the blue rocket?",
-            route="auto"
+            route="auto",
         )
 
         # The response is a dict with 'answer' key
@@ -355,9 +362,11 @@ class TestAIQuality:
         assert generated_answer, "Should generate a non-empty answer"
 
         # More flexible assertion - check if it mentions secret code or the actual code
-        assert ("secret" in generated_answer.lower() or
-                "code" in generated_answer.lower() or
-                "9b752c8a" in generated_answer), (
+        assert (
+            "secret" in generated_answer.lower()
+            or "code" in generated_answer.lower()
+            or "9b752c8a" in generated_answer
+        ), (
             f"Generated answer should reference the secret code. "
             f"Generated answer: {generated_answer}"
         )
@@ -369,19 +378,16 @@ class TestAIQuality:
 
         # First, test retrieval
         retrieval_results = await self.knowledge_service.search_router(
-            query=query,
-            top_k=5,
-            route="auto"
+            query=query, top_k=5, route="auto"
         )
 
-        assert len(retrieval_results.get("results", [])) > 0, "Should retrieve relevant documents"
+        assert len(retrieval_results.get("results", [])) > 0, (
+            "Should retrieve relevant documents"
+        )
 
         # Then test generation with context
-        # FIXED: Use the correct method name and parameters
         response = await self.chatbot_service.answer_user_message(
-            user_id="test_user",
-            message=query,
-            route="auto"
+            user_id="test_user", message=query, route="auto"
         )
 
         generated_answer = response.get("answer", "")

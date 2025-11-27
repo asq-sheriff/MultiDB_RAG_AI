@@ -1,11 +1,10 @@
-"""Shared test fixtures and configuration - FIXED for proper service initialization"""
+"""Shared test fixtures and configuration"""
 
 import pytest
 import asyncio
 from typing import AsyncGenerator, Generator
 import httpx
 from httpx import ASGITransport
-import uuid
 import sys
 from pathlib import Path
 import logging
@@ -15,10 +14,12 @@ import os
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Set test environment variables BEFORE importing anything else
-os.environ['TESTING'] = 'true'
-os.environ['USE_REAL_EMBEDDINGS'] = '0'  # Use mock embeddings for tests
-os.environ['USE_REAL_GENERATION'] = '0'  # Use mock generation for tests
-os.environ['RAG_SYNTHETIC_QUERY_EMBEDDINGS'] = '1'  # Enable synthetic embeddings for tests
+os.environ["TESTING"] = "true"
+os.environ["USE_REAL_EMBEDDINGS"] = "0"  # Use mock embeddings for tests
+os.environ["USE_REAL_GENERATION"] = "0"  # Use mock generation for tests
+os.environ["RAG_SYNTHETIC_QUERY_EMBEDDINGS"] = (
+    "1"  # Enable synthetic embeddings for tests
+)
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -31,7 +32,7 @@ from app.config import config
 from app.database.mongo_connection import init_enhanced_mongo, close_enhanced_mongo
 
 # Configure pytest-asyncio
-pytest_plugins = ('pytest_asyncio',)
+pytest_plugins = ("pytest_asyncio",)
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +50,9 @@ def event_loop() -> Generator:
 async def initialize_services(event_loop):
     """
     Initialize all application services once for the test session.
-    FIXED: Properly initialize all services and handle failures gracefully.
     """
-    # FIXED: Reset services first to ensure clean state
     from app.dependencies import reset_services
+
     reset_services()
 
     # Initialize MongoDB connection
@@ -60,11 +60,14 @@ async def initialize_services(event_loop):
         await init_enhanced_mongo()
         logger.info("MongoDB initialized for tests")
     except Exception as e:
-        logger.warning(f"MongoDB initialization failed (non-critical for some tests): {e}")
+        logger.warning(
+            f"MongoDB initialization failed (non-critical for some tests): {e}"
+        )
 
     # Initialize PostgreSQL
     try:
         from app.database.postgres_connection import postgres_manager
+
         await postgres_manager.initialize()
         logger.info("PostgreSQL initialized for tests")
     except Exception as e:
@@ -73,12 +76,12 @@ async def initialize_services(event_loop):
     # Initialize Redis (optional)
     try:
         from app.database.redis_connection import redis_manager
+
         redis_manager.initialize()
         logger.info("Redis initialized for tests")
     except Exception as e:
         logger.warning(f"Redis initialization failed (non-critical): {e}")
 
-    # FIXED: Initialize services using getter functions with proper error handling
     from app import dependencies
 
     services_status = {
@@ -90,7 +93,7 @@ async def initialize_services(event_loop):
         "auth": False,
         "user": False,
         "multi_db": False,
-        "scylla": False
+        "scylla": False,
     }
 
     # Initialize core services
@@ -154,7 +157,9 @@ async def initialize_services(event_loop):
     # ScyllaDB is optional
     try:
         scylla_manager = dependencies.get_scylla_manager()
-        services_status["scylla"] = scylla_manager is not None and scylla_manager.is_connected()
+        services_status["scylla"] = (
+            scylla_manager is not None and scylla_manager.is_connected()
+        )
         logger.info(f"ScyllaDB manager initialized: {services_status['scylla']}")
     except Exception as e:
         logger.warning(f"ScyllaDB initialization failed (non-critical): {e}")
@@ -162,14 +167,18 @@ async def initialize_services(event_loop):
     # Log summary
     initialized_count = sum(1 for v in services_status.values() if v)
     total_count = len(services_status)
-    logger.info(f"Service initialization summary: {initialized_count}/{total_count} services ready")
+    logger.info(
+        f"Service initialization summary: {initialized_count}/{total_count} services ready"
+    )
 
     # Check critical services
     critical_services = ["billing", "auth", "knowledge", "chatbot"]
     critical_ok = all(services_status.get(s, False) for s in critical_services)
 
     if not critical_ok:
-        failed_critical = [s for s in critical_services if not services_status.get(s, False)]
+        failed_critical = [
+            s for s in critical_services if not services_status.get(s, False)
+        ]
         logger.error(f"Critical services failed to initialize: {failed_critical}")
         # Don't raise - let tests handle missing services
 
@@ -184,6 +193,7 @@ async def initialize_services(event_loop):
 
     try:
         from app.database.postgres_connection import postgres_manager
+
         await postgres_manager.close()
         logger.info("PostgreSQL connection closed")
     except Exception as e:
@@ -191,6 +201,7 @@ async def initialize_services(event_loop):
 
     try:
         from app.database.redis_connection import redis_manager
+
         redis_manager.close()
         logger.info("Redis connection closed")
     except Exception as e:
@@ -225,14 +236,18 @@ async def test_engine():
     test_db_name = f"{config.postgresql.database}_test"
 
     # First, create the test database if it doesn't exist
-    default_db_url = config.postgresql.url.replace(f"/{config.postgresql.database}", "/postgres")
-    temp_engine = create_async_engine(default_db_url, isolation_level="AUTOCOMMIT", poolclass=NullPool)
+    default_db_url = config.postgresql.url.replace(
+        f"/{config.postgresql.database}", "/postgres"
+    )
+    temp_engine = create_async_engine(
+        default_db_url, isolation_level="AUTOCOMMIT", poolclass=NullPool
+    )
 
     async with temp_engine.connect() as conn:
         # Check if test database exists
         result = await conn.execute(
-            text(f"SELECT 1 FROM pg_database WHERE datname = :dbname"),
-            {"dbname": test_db_name}
+            text("SELECT 1 FROM pg_database WHERE datname = :dbname"),
+            {"dbname": test_db_name},
         )
         exists = result.scalar()
 
@@ -243,12 +258,14 @@ async def test_engine():
     await temp_engine.dispose()
 
     # Now create the actual test engine
-    test_db_url = config.postgresql.url.replace(f"/{config.postgresql.database}", f"/{test_db_name}")
+    test_db_url = config.postgresql.url.replace(
+        f"/{config.postgresql.database}", f"/{test_db_name}"
+    )
     engine = create_async_engine(
         test_db_url,
         echo=False,
         poolclass=NullPool,  # Important for testing
-        future=True
+        future=True,
     )
 
     # Create all tables
@@ -267,9 +284,7 @@ async def test_engine():
 async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
     """Create a new database session for a test."""
     async_session_maker = async_sessionmaker(
-        test_engine,
-        class_=AsyncSession,
-        expire_on_commit=False
+        test_engine, class_=AsyncSession, expire_on_commit=False
     )
 
     async with async_session_maker() as session:
@@ -289,7 +304,10 @@ async def test_client():
 def suppress_scylla_warnings(monkeypatch):
     """Suppress ScyllaDB/Cassandra shutdown warnings in tests."""
     import warnings
-    warnings.filterwarnings("ignore", message=".*cannot schedule new futures after shutdown.*")
+
+    warnings.filterwarnings(
+        "ignore", message=".*cannot schedule new futures after shutdown.*"
+    )
     warnings.filterwarnings("ignore", category=ResourceWarning)
 
     # Also suppress through environment

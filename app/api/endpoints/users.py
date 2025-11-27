@@ -3,15 +3,12 @@ Users API Router
 ===============
 
 User management endpoints for profile updates, preferences, and account management.
-
-Location: app/api/endpoints/users.py (Replace empty file)
 """
 
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.dependencies import get_postgres_session, get_auth_service
+from pydantic import BaseModel
+from app.dependencies import get_auth_service
 from app.core.auth_dependencies import get_current_user
 from app.database.postgres_models import User
 
@@ -19,6 +16,7 @@ from app.database.postgres_models import User
 router = APIRouter(prefix="/users", tags=["users"])
 
 auth_service = get_auth_service()
+
 
 # Pydantic models for request/response
 class UserUpdateRequest(BaseModel):
@@ -43,7 +41,7 @@ class UserPreferencesRequest(BaseModel):
 
 @router.get("/profile", response_model=UserProfileResponse)
 async def get_user_profile(
-        current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> UserProfileResponse:
     """
     Get current user's complete profile information.
@@ -59,14 +57,13 @@ async def get_user_profile(
         is_verified=current_user.is_verified,
         preferences=current_user.preferences or {},
         created_at=current_user.created_at.isoformat(),
-        updated_at=current_user.updated_at.isoformat()
+        updated_at=current_user.updated_at.isoformat(),
     )
 
 
 @router.put("/profile", response_model=UserProfileResponse)
 async def update_user_profile(
-        update_data: UserUpdateRequest,
-        current_user: User = Depends(get_current_user)
+    update_data: UserUpdateRequest, current_user: User = Depends(get_current_user)
 ) -> UserProfileResponse:
     """
     Update current user's profile information.
@@ -88,7 +85,7 @@ async def update_user_profile(
             if update_data.subscription_plan not in valid_plans:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid subscription plan. Must be one of: {valid_plans}"
+                    detail=f"Invalid subscription plan. Must be one of: {valid_plans}",
                 )
             update_fields["subscription_plan"] = update_data.subscription_plan
 
@@ -101,7 +98,7 @@ async def update_user_profile(
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to update user profile"
+                detail="Failed to update user profile",
             )
 
         return UserProfileResponse(
@@ -112,21 +109,21 @@ async def update_user_profile(
             is_verified=updated_user.is_verified,
             preferences=updated_user.preferences or {},
             created_at=updated_user.created_at.isoformat(),
-            updated_at=updated_user.updated_at.isoformat()
+            updated_at=updated_user.updated_at.isoformat(),
         )
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update profile"
+            detail="Failed to update profile",
         )
 
 
 @router.get("/preferences")
 async def get_user_preferences(
-        current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Get current user's preferences.
@@ -139,8 +136,8 @@ async def get_user_preferences(
 
 @router.put("/preferences")
 async def update_user_preferences(
-        preferences_data: UserPreferencesRequest,
-        current_user: User = Depends(get_current_user)
+    preferences_data: UserPreferencesRequest,
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Update current user's preferences.
@@ -154,28 +151,27 @@ async def update_user_preferences(
     """
     try:
         updated_user = await auth_service.update_user(
-            current_user.id,
-            preferences=preferences_data.preferences
+            current_user.id, preferences=preferences_data.preferences
         )
 
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to update preferences"
+                detail="Failed to update preferences",
             )
 
         return updated_user.preferences or {}
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update preferences"
+            detail="Failed to update preferences",
         )
 
 
 @router.delete("/account")
 async def deactivate_account(
-        current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, str]:
     """
     Deactivate current user's account.
@@ -187,29 +183,26 @@ async def deactivate_account(
         Dict: Success message
     """
     try:
-        updated_user = await auth_service.update_user(
-            current_user.id,
-            is_active=False
-        )
+        updated_user = await auth_service.update_user(current_user.id, is_active=False)
 
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to deactivate account"
+                detail="Failed to deactivate account",
             )
 
         return {"message": "Account deactivated successfully"}
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to deactivate account"
+            detail="Failed to deactivate account",
         )
 
 
 @router.get("/dashboard")
 async def get_user_dashboard(
-        current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Get comprehensive user dashboard data from all databases.
@@ -228,7 +221,7 @@ async def get_user_dashboard(
             "subscription_plan": current_user.subscription_plan,
             "is_active": current_user.is_active,
             "is_verified": current_user.is_verified,
-            "member_since": current_user.created_at.isoformat()
+            "member_since": current_user.created_at.isoformat(),
         }
 
         # Try to get multi-database dashboard data
@@ -249,25 +242,32 @@ async def get_user_dashboard(
         except Exception as e:
             # If multi-db service fails, continue with basic user data
             dashboard_data["multi_db_error"] = str(e)
-            dashboard_data["note"] = "Limited dashboard data due to service unavailability"
+            dashboard_data["note"] = (
+                "Limited dashboard data due to service unavailability"
+            )
 
         # Add system status information
         try:
             from app.core.auth_dependencies import get_comprehensive_service_status
+
             service_status = get_comprehensive_service_status()
             dashboard_data["system_status"] = {
-                "ai_services_ready": service_status.get("services", {}).get("services_ready", 0),
-                "atlas_search_available": service_status.get("database", {}).get("atlas_search_available", False)
+                "ai_services_ready": service_status.get("services", {}).get(
+                    "services_ready", 0
+                ),
+                "atlas_search_available": service_status.get("database", {}).get(
+                    "atlas_search_available", False
+                ),
             }
         except Exception:
             dashboard_data["system_status"] = {"status": "unknown"}
 
         return dashboard_data
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to load dashboard data"
+            detail="Failed to load dashboard data",
         )
 
 

@@ -9,23 +9,33 @@ load_dotenv()
 
 @dataclass
 class EmbeddingConfig:
-    model_name: str = os.getenv("EMBEDDING_MODEL_NAME", "sentence-transformers/all-mpnet-base-v2")
-    fallback_model: str = os.getenv("EMBEDDING_FALLBACK_MODEL", "mlx-community/all-MiniLM-L6-v2-4bit")
+    model_name: str = os.getenv(
+        "EMBEDDING_MODEL_NAME", "sentence-transformers/all-mpnet-base-v2"
+    )
+    fallback_model: str = os.getenv(
+        "EMBEDDING_FALLBACK_MODEL", "mlx-community/all-MiniLM-L6-v2-4bit"
+    )
     batch_size: int = int(os.getenv("EMBEDDING_BATCH_SIZE", "16"))
     max_sequence_length: int = int(os.getenv("EMBEDDING_MAX_LENGTH", "2048"))
-    normalize_embeddings: bool = os.getenv("EMBEDDING_NORMALIZE", "true").lower() == "true"
+    normalize_embeddings: bool = (
+        os.getenv("EMBEDDING_NORMALIZE", "true").lower() == "true"
+    )
     use_fp16: bool = os.getenv("EMBEDDING_USE_FP16", "true").lower() == "true"
     device: Optional[str] = os.getenv("EMBEDDING_DEVICE")
     enable_mps: bool = os.getenv("EMBEDDING_ENABLE_MPS", "true").lower() == "true"
     max_cache_size_mb: int = int(os.getenv("EMBEDDING_CACHE_MB", "2048"))
     thread_pool_workers: int = int(os.getenv("EMBEDDING_THREADS", "2"))
-    memory_cleanup_threshold: float = float(os.getenv("MEMORY_CLEANUP_THRESHOLD", "0.75"))
+    memory_cleanup_threshold: float = float(
+        os.getenv("MEMORY_CLEANUP_THRESHOLD", "0.75")
+    )
     query_timeout_seconds: float = float(os.getenv("EMBEDDING_QUERY_TIMEOUT", "10.0"))
     batch_timeout_seconds: float = float(os.getenv("EMBEDDING_BATCH_TIMEOUT", "120.0"))
-    enable_postgresql: bool = os.getenv("EMBEDDING_ENABLE_POSTGRESQL", "false").lower() == "true"
+    enable_postgresql: bool = (
+        os.getenv("EMBEDDING_ENABLE_POSTGRESQL", "false").lower() == "true"
+    )
 
     @classmethod
-    def from_env(cls) -> 'EmbeddingConfig':
+    def from_env(cls) -> "EmbeddingConfig":
         return cls()
 
 
@@ -33,30 +43,42 @@ class EmbeddingConfig:
 class GenerationConfig:
     model_name: str = os.getenv("GENERATION_MODEL_NAME", "Qwen/Qwen3-1.7B")
     target_model: str = "deepseek/deepseek-r1-0528-qwen3-8b"
-    fallback_model: str = os.getenv("GENERATION_FALLBACK_MODEL", "mlx-community/Mistral-7B-Instruct-v0.2-4-bit")
+    fallback_model: str = os.getenv(
+        "GENERATION_FALLBACK_MODEL", "mlx-community/Mistral-7B-Instruct-v0.2-4-bit"
+    )
     quantization: str = os.getenv("GENERATION_QUANTIZATION", "mlx")
     load_in_4bit: bool = os.getenv("GENERATION_4BIT", "false").lower() == "true"
     load_in_8bit: bool = os.getenv("GENERATION_8BIT", "false").lower() == "true"
     max_context_length: int = int(os.getenv("GENERATION_MAX_CONTEXT", "4096"))
     max_new_tokens: int = int(os.getenv("GENERATION_MAX_TOKENS", "1024"))
-    context_window_adjustment: bool = os.getenv("GENERATION_CONTEXT_ADJUSTMENT", "true").lower() == "true"
-    dynamic_context_scaling: bool = os.getenv("DYNAMIC_CONTEXT_SCALING", "true").lower() == "true"
+    context_window_adjustment: bool = (
+        os.getenv("GENERATION_CONTEXT_ADJUSTMENT", "true").lower() == "true"
+    )
+    dynamic_context_scaling: bool = (
+        os.getenv("DYNAMIC_CONTEXT_SCALING", "true").lower() == "true"
+    )
     device: Optional[str] = os.getenv("GENERATION_DEVICE")
     enable_mps: bool = os.getenv("GENERATION_ENABLE_MPS", "true").lower() == "true"
     prefer_mlx: bool = os.getenv("GENERATION_PREFER_MLX", "true").lower() == "true"
     temperature: float = float(os.getenv("GENERATION_TEMPERATURE", "0.7"))
     top_p: float = float(os.getenv("GENERATION_TOP_P", "0.9"))
     top_k: int = int(os.getenv("GENERATION_TOP_K", "40"))
-    repetition_penalty: float = float(os.getenv("GENERATION_REPETITION_PENALTY", "1.05"))
+    repetition_penalty: float = float(
+        os.getenv("GENERATION_REPETITION_PENALTY", "1.05")
+    )
     batch_size: int = int(os.getenv("GENERATION_BATCH_SIZE", "1"))
     thread_pool_workers: int = int(os.getenv("GENERATION_THREADS", "1"))
-    memory_cleanup_threshold: float = float(os.getenv("MEMORY_CLEANUP_THRESHOLD", "0.80"))
+    memory_cleanup_threshold: float = float(
+        os.getenv("MEMORY_CLEANUP_THRESHOLD", "0.80")
+    )
     enable_streaming: bool = os.getenv("ENABLE_STREAMING", "false").lower() == "true"
     generation_timeout_seconds: float = float(os.getenv("GENERATION_TIMEOUT", "60.0"))
-    enable_postgresql: bool = os.getenv("GENERATION_ENABLE_POSTGRESQL", "false").lower() == "true"
+    enable_postgresql: bool = (
+        os.getenv("GENERATION_ENABLE_POSTGRESQL", "false").lower() == "true"
+    )
 
     @classmethod
-    def from_env(cls) -> 'GenerationConfig':
+    def from_env(cls) -> "GenerationConfig":
         return cls()
 
 
@@ -71,18 +93,28 @@ class AtlasVectorSearchConfig:
     num_candidates_multiplier: int = int(os.getenv("ATLAS_CANDIDATES_MULTIPLIER", "10"))
     max_candidates: int = int(os.getenv("ATLAS_MAX_CANDIDATES", "1000"))
     enable_atlas_search: bool = os.getenv("ENABLE_ATLAS_SEARCH", "auto") != "false"
-    enable_manual_fallback: bool = os.getenv("ENABLE_MANUAL_FALLBACK", "true") != "false"
-    manual_fallback_threshold: int = int(os.getenv("MANUAL_FALLBACK_THRESHOLD", "10000"))
+    enable_manual_fallback: bool = (
+        os.getenv("ENABLE_MANUAL_FALLBACK", "true") != "false"
+    )
+    manual_fallback_threshold: int = int(
+        os.getenv("MANUAL_FALLBACK_THRESHOLD", "10000")
+    )
 
 
 @dataclass
 class SearchConfig:
-    enable_exact_search_fallback: bool = os.getenv("ENABLE_EXACT_SEARCH_FALLBACK", "true") == "true"
-    enable_semantic_search_fallback: bool = os.getenv("ENABLE_SEMANTIC_SEARCH_FALLBACK", "true") == "true"
+    enable_exact_search_fallback: bool = (
+        os.getenv("ENABLE_EXACT_SEARCH_FALLBACK", "true") == "true"
+    )
+    enable_semantic_search_fallback: bool = (
+        os.getenv("ENABLE_SEMANTIC_SEARCH_FALLBACK", "true") == "true"
+    )
     min_exact_results: int = int(os.getenv("MIN_EXACT_RESULTS", "1"))
     min_semantic_score: float = float(os.getenv("MIN_SEMANTIC_SCORE", "0.3"))
     candidate_multiplier_default: int = int(os.getenv("CANDIDATE_MULTIPLIER", "8"))
-    candidate_multiplier_fallback: int = int(os.getenv("CANDIDATE_MULTIPLIER_FALLBACK", "12"))
+    candidate_multiplier_fallback: int = int(
+        os.getenv("CANDIDATE_MULTIPLIER_FALLBACK", "12")
+    )
     max_fallback_attempts: int = int(os.getenv("MAX_FALLBACK_ATTEMPTS", "2"))
     rag_top_k: int = int(os.getenv("RAG_TOP_K", "10"))
     rag_max_snippets: int = int(os.getenv("RAG_MAX_SNIPPETS", "5"))
@@ -109,15 +141,15 @@ class ScyllaConfig:
     def get_scylla_config(cls) -> dict:
         instance = cls()
         return {
-            'hosts': instance.hosts,
-            'port': instance.port,
-            'keyspace': instance.keyspace,
-            'datacenter': instance.datacenter,
-            'connect_timeout': instance.connect_timeout,
-            'control_connection_timeout': instance.control_connection_timeout,
-            'protocol_version': instance.protocol_version,
-            'max_retries': instance.max_retries,
-            'retry_delay': instance.retry_delay
+            "hosts": instance.hosts,
+            "port": instance.port,
+            "keyspace": instance.keyspace,
+            "datacenter": instance.datacenter,
+            "connect_timeout": instance.connect_timeout,
+            "control_connection_timeout": instance.control_connection_timeout,
+            "protocol_version": instance.protocol_version,
+            "max_retries": instance.max_retries,
+            "retry_delay": instance.retry_delay,
         }
 
 
@@ -202,7 +234,7 @@ class MongoConfig:
             "connectTimeoutMS": self.connect_timeout_ms,
             "socketTimeoutMS": self.socket_timeout_ms,
             "maxPoolSize": self.max_pool_size,
-            "minPoolSize": self.min_pool_size
+            "minPoolSize": self.min_pool_size,
         }
 
 
@@ -229,13 +261,19 @@ class ApplicationConfig:
 
     use_real_embeddings: bool = os.getenv("USE_REAL_EMBEDDINGS", "1") == "1"
     use_real_generation: bool = os.getenv("USE_REAL_GENERATION", "1") == "1"
-    use_synthetic_fallback: bool = os.getenv("RAG_SYNTHETIC_QUERY_EMBEDDINGS", "0") == "1"
+    use_synthetic_fallback: bool = (
+        os.getenv("RAG_SYNTHETIC_QUERY_EMBEDDINGS", "0") == "1"
+    )
     enable_embedding_warmup: bool = os.getenv("ENABLE_EMBEDDING_WARMUP", "1") == "1"
     enable_generation_warmup: bool = os.getenv("ENABLE_GENERATION_WARMUP", "1") == "1"
 
     enable_atlas_search: bool = os.getenv("ENABLE_ATLAS_SEARCH", "auto") != "false"
-    enable_exact_search_fallback: bool = os.getenv("ENABLE_EXACT_SEARCH_FALLBACK", "true") == "true"
-    enable_semantic_search_fallback: bool = os.getenv("ENABLE_SEMANTIC_SEARCH_FALLBACK", "true") == "true"
+    enable_exact_search_fallback: bool = (
+        os.getenv("ENABLE_EXACT_SEARCH_FALLBACK", "true") == "true"
+    )
+    enable_semantic_search_fallback: bool = (
+        os.getenv("ENABLE_SEMANTIC_SEARCH_FALLBACK", "true") == "true"
+    )
 
     enable_intelligent_routing: bool = True
     enable_timeout_processing: bool = True
@@ -253,12 +291,18 @@ class ApplicationConfig:
     rag_max_snippets: int = int(os.getenv("RAG_MAX_SNIPPETS", "5"))
 
     enable_memory_monitoring: bool = os.getenv("ENABLE_MEMORY_MONITORING", "1") == "1"
-    memory_cleanup_threshold: float = float(os.getenv("MEMORY_CLEANUP_THRESHOLD", "0.80"))
+    memory_cleanup_threshold: float = float(
+        os.getenv("MEMORY_CLEANUP_THRESHOLD", "0.80")
+    )
 
-    enable_performance_tracking: bool = os.getenv("ENABLE_PERFORMANCE_TRACKING", "1") == "1"
+    enable_performance_tracking: bool = (
+        os.getenv("ENABLE_PERFORMANCE_TRACKING", "1") == "1"
+    )
     enable_telemetry: bool = os.getenv("ENABLE_TELEMETRY", "1") == "1"
 
-    enable_advanced_document_processor: bool = os.getenv("ENABLE_ADVANCED_DOC_PROCESSOR", "1") == "1"
+    enable_advanced_document_processor: bool = (
+        os.getenv("ENABLE_ADVANCED_DOC_PROCESSOR", "1") == "1"
+    )
     enable_pdf_processing: bool = os.getenv("SEED_ENABLE_PDF", "1") == "1"
     enable_docx_processing: bool = os.getenv("SEED_ENABLE_DOCX", "1") == "1"
     enable_csv_processing: bool = os.getenv("SEED_ENABLE_CSV", "1") == "1"
@@ -281,13 +325,17 @@ class ApplicationConfig:
     seed_max_retries: int = int(os.getenv("SEED_MAX_RETRIES", "3"))
     seed_retry_delay: float = float(os.getenv("SEED_RETRY_DELAY", "2.0"))
 
-    seed_monitor_index_creation: bool = os.getenv("SEED_MONITOR_INDEX_CREATION", "1") == "1"
+    seed_monitor_index_creation: bool = (
+        os.getenv("SEED_MONITOR_INDEX_CREATION", "1") == "1"
+    )
     atlas_index_timeout: int = int(os.getenv("ATLAS_INDEX_TIMEOUT", "600"))
 
     seed_enable_quality_checks: bool = os.getenv("SEED_QUALITY_CHECKS", "1") == "1"
     seed_min_quality_score: float = float(os.getenv("SEED_MIN_QUALITY_SCORE", "0.7"))
 
-    seed_enable_detailed_progress: bool = os.getenv("SEED_DETAILED_PROGRESS", "1") == "1"
+    seed_enable_detailed_progress: bool = (
+        os.getenv("SEED_DETAILED_PROGRESS", "1") == "1"
+    )
     seed_progress_report_frequency: int = int(os.getenv("SEED_PROGRESS_FREQUENCY", "5"))
 
     seed_incremental_mode: bool = os.getenv("SEED_INCREMENTAL_MODE", "0") == "1"
@@ -332,22 +380,22 @@ class ApplicationConfig:
                 "docx": self.enable_docx_processing,
                 "csv": self.enable_csv_processing,
                 "html": self.enable_html_processing,
-                "json": self.enable_json_processing
+                "json": self.enable_json_processing,
             },
             "performance": {
                 "parallel_processing": self.seed_parallel_processing,
                 "dynamic_batching": self.seed_dynamic_batch_sizing,
                 "max_workers": self.seed_max_workers,
-                "memory_monitoring": self.seed_memory_monitoring
+                "memory_monitoring": self.seed_memory_monitoring,
             },
             "quality_control": {
                 "quality_checks": self.seed_enable_quality_checks,
-                "min_quality_score": self.seed_min_quality_score
+                "min_quality_score": self.seed_min_quality_score,
             },
             "atlas_features": {
                 "monitor_indexes": self.seed_monitor_index_creation,
-                "index_timeout": self.atlas_index_timeout
-            }
+                "index_timeout": self.atlas_index_timeout,
+            },
         }
 
     def validate_seeding_configuration(self) -> dict:
@@ -359,14 +407,16 @@ class ApplicationConfig:
             ("DOCX", self.enable_docx_processing),
             ("CSV", self.enable_csv_processing),
             ("HTML", self.enable_html_processing),
-            ("JSON", self.enable_json_processing)
+            ("JSON", self.enable_json_processing),
         ]
 
         enabled_count = sum(1 for _, enabled in enabled_formats if enabled)
         if enabled_count == 0:
             issues.append("No file formats enabled for processing")
         elif enabled_count < 3:
-            warnings.append(f"Only {enabled_count} file formats enabled - consider enabling more for better coverage")
+            warnings.append(
+                f"Only {enabled_count} file formats enabled - consider enabling more for better coverage"
+            )
 
         if self.seed_max_workers > 8:
             warnings.append("High worker count may cause memory issues on some systems")
@@ -384,7 +434,7 @@ class ApplicationConfig:
             "valid": len(issues) == 0,
             "issues": issues,
             "warnings": warnings,
-            "enabled_formats": [name for name, enabled in enabled_formats if enabled]
+            "enabled_formats": [name for name, enabled in enabled_formats if enabled],
         }
 
 
@@ -396,5 +446,5 @@ config = ApplicationConfig(
     embedding=EmbeddingConfig(),
     generation=GenerationConfig(),
     atlas_search=AtlasVectorSearchConfig(),
-    search=SearchConfig()
+    search=SearchConfig(),
 )

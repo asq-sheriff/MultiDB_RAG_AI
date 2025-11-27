@@ -10,20 +10,24 @@ from app.database.postgres_models import User
 # Create API router
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
+
 # Pydantic models for request/response
 class UserRegistration(BaseModel):
     email: EmailStr
     password: str
     subscription_plan: str = "free"
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: Dict[str, Any]
+
 
 class UserProfile(BaseModel):
     id: str
@@ -32,10 +36,10 @@ class UserProfile(BaseModel):
     is_active: bool
     is_verified: bool
 
+
 @router.post("/register", response_model=AuthResponse)
 async def register_user(
-        user_data: UserRegistration,
-        session: AsyncSession = Depends(get_db_session)
+    user_data: UserRegistration, session: AsyncSession = Depends(get_db_session)
 ) -> AuthResponse:
     """Register a new user account with detailed error logging"""
     import traceback
@@ -50,7 +54,7 @@ async def register_user(
         user = await auth_service.create_user(
             email=user_data.email,
             password=user_data.password,
-            subscription_plan=user_data.subscription_plan
+            subscription_plan=user_data.subscription_plan,
         )
 
         logger.info(f"✅ User created successfully: {user.id}")
@@ -68,28 +72,28 @@ async def register_user(
                 "email": user.email,
                 "subscription_plan": user.subscription_plan,
                 "is_active": user.is_active,
-                "is_verified": user.is_verified
-            }
+                "is_verified": user.is_verified,
+            },
         )
 
     except ValueError as e:
         logger.error(f"❌ ValueError in registration: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Validation error: {str(e)}"
+            detail=f"Validation error: {str(e)}",
         )
     except Exception as e:
         logger.error(f"❌ Unexpected error in registration: {e}")
         logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Registration failed: {str(e)}"
+            detail=f"Registration failed: {e}",
         )
+
 
 @router.post("/login", response_model=AuthResponse)
 async def login_user(
-        login_data: UserLogin,
-        session: AsyncSession = Depends(get_db_session)
+    login_data: UserLogin, session: AsyncSession = Depends(get_db_session)
 ) -> AuthResponse:
     """
     Authenticate user and return JWT token.
@@ -110,14 +114,13 @@ async def login_user(
     try:
         # Authenticate user
         user = await auth_service.authenticate_user(
-            email=login_data.email,
-            password=login_data.password
+            email=login_data.email, password=login_data.password
         )
 
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password"
+                detail="Invalid email or password",
             )
 
         # Generate access token
@@ -131,21 +134,22 @@ async def login_user(
                 "email": user.email,
                 "subscription_plan": user.subscription_plan,
                 "is_active": user.is_active,
-                "is_verified": user.is_verified
-            }
+                "is_verified": user.is_verified,
+            },
         )
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Authentication failed"
+            detail="Authentication failed",
         )
+
 
 @router.get("/me", response_model=UserProfile)
 async def get_current_user_profile(
-        current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> UserProfile:
     """
     Get current user profile information.
@@ -164,12 +168,13 @@ async def get_current_user_profile(
         email=current_user.email,
         subscription_plan=current_user.subscription_plan,
         is_active=current_user.is_active,
-        is_verified=current_user.is_verified
+        is_verified=current_user.is_verified,
     )
+
 
 @router.get("/dashboard")
 async def get_user_dashboard(
-        current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """
     Get comprehensive user dashboard data.
@@ -195,11 +200,12 @@ async def get_user_dashboard(
 
         return dashboard_data
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to load dashboard data"
+            detail="Failed to load dashboard data",
         )
+
 
 # Export router for main app integration
 __all__ = ["router"]

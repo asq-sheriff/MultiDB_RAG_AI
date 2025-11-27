@@ -14,6 +14,7 @@ from app.services.knowledge_service import KnowledgeService
 # Import generation service
 try:
     from app.services.generation_service import GenerationService
+
     GENERATION_SERVICE_AVAILABLE = True
 except ImportError:
     GenerationService = None
@@ -24,9 +25,11 @@ logger = logging.getLogger(__name__)
 # Type definitions
 TelemetryFn = Callable[[str, Dict[str, Any]], None]
 
+
 @dataclass
 class ChatResponse:
     """Enhanced response structure for chatbot interactions"""
+
     message: str
     has_context: bool = False
     session_info: Dict[str, Any] = None
@@ -65,7 +68,7 @@ def dict_to_chat_response(response_dict: Dict[str, Any]) -> ChatResponse:
         generation_used=response_dict.get("generation_used", False),
         context_sources=retrieval.get("results", []),
         search_quality=response_dict.get("search_quality", {}),
-        response_metadata=response_dict.get("response_metadata", {})
+        response_metadata=response_dict.get("response_metadata", {}),
     )
 
 
@@ -86,25 +89,43 @@ class EnhancedChatbotConfig:
 
     # Generation configuration - reads from your .env
     use_real_generation: bool = os.getenv("USE_REAL_GENERATION", "1") == "1"
-    generation_max_tokens: int = int(os.getenv("CHATBOT_GENERATION_MAX_TOKENS",
-                                               os.getenv("GENERATION_MAX_TOKENS", "512")))
-    generation_temperature: float = float(os.getenv("CHATBOT_GENERATION_TEMPERATURE",
-                                                   os.getenv("GENERATION_TEMPERATURE", "0.7")))
-    generation_timeout: float = float(os.getenv("CHATBOT_GENERATION_TIMEOUT",
-                                               os.getenv("GENERATION_TIMEOUT", "30.0")))
+    generation_max_tokens: int = int(
+        os.getenv(
+            "CHATBOT_GENERATION_MAX_TOKENS", os.getenv("GENERATION_MAX_TOKENS", "512")
+        )
+    )
+    generation_temperature: float = float(
+        os.getenv(
+            "CHATBOT_GENERATION_TEMPERATURE", os.getenv("GENERATION_TEMPERATURE", "0.7")
+        )
+    )
+    generation_timeout: float = float(
+        os.getenv("CHATBOT_GENERATION_TIMEOUT", os.getenv("GENERATION_TIMEOUT", "30.0"))
+    )
 
     # Response strategies
     response_strategy: str = os.getenv("RESPONSE_STRATEGY", "rag_enhanced")
     fallback_to_template: bool = os.getenv("FALLBACK_TO_TEMPLATE", "1") == "1"
 
     # Context optimization - reads from your .env
-    context_window_optimization: bool = os.getenv("CONTEXT_WINDOW_OPTIMIZATION", "1") == "1"
-    dynamic_context_adjustment: bool = os.getenv("DYNAMIC_CONTEXT_ADJUSTMENT", "1") == "1"
+    context_window_optimization: bool = (
+        os.getenv("CONTEXT_WINDOW_OPTIMIZATION", "1") == "1"
+    )
+    dynamic_context_adjustment: bool = (
+        os.getenv("DYNAMIC_CONTEXT_ADJUSTMENT", "1") == "1"
+    )
 
     # Advanced features
-    enable_conversation_memory: bool = os.getenv("ENABLE_CONVERSATION_MEMORY", "1") == "1"
+    enable_conversation_memory: bool = (
+        os.getenv("ENABLE_CONVERSATION_MEMORY", "1") == "1"
+    )
     max_conversation_history: int = int(os.getenv("MAX_CONVERSATION_HISTORY", "5"))
-    enable_streaming: bool = os.getenv("ENABLE_STREAMING", "0").lower() in ("true","1","yes","on")
+    enable_streaming: bool = os.getenv("ENABLE_STREAMING", "0").lower() in (
+        "true",
+        "1",
+        "yes",
+        "on",
+    )
 
 
 # Backward compatibility
@@ -137,12 +158,12 @@ class EnhancedChatbotService:
 
         # Check if real generation is available and configured
         self.real_generation_available = (
-            self.generation_service is not None and
-            self.cfg.use_real_generation and
-            GENERATION_SERVICE_AVAILABLE
+            self.generation_service is not None
+            and self.cfg.use_real_generation
+            and GENERATION_SERVICE_AVAILABLE
         )
 
-        logger.info(f"Enhanced ChatbotService initialized")
+        logger.info("Enhanced ChatbotService initialized")
         logger.info(f"  Real generation available: {self.real_generation_available}")
         logger.info(f"  Response strategy: {self.cfg.response_strategy}")
         logger.info(f"  Context optimization: {self.cfg.context_window_optimization}")
@@ -175,12 +196,15 @@ class EnhancedChatbotService:
         """
         start_time = time.time()
 
-        self._telemetry("enhanced_chat_begin", {
-            "user_id": user_id,
-            "message_length": len(message),
-            "real_generation_available": self.real_generation_available,
-            "response_strategy": response_strategy or self.cfg.response_strategy
-        })
+        self._telemetry(
+            "enhanced_chat_begin",
+            {
+                "user_id": user_id,
+                "message_length": len(message),
+                "real_generation_available": self.real_generation_available,
+                "response_strategy": response_strategy or self.cfg.response_strategy,
+            },
+        )
 
         try:
             # 1. Store user message with enhanced metadata
@@ -191,44 +215,65 @@ class EnhancedChatbotService:
                 message, route, top_k, filters
             )
 
-            context_text = self._build_enhanced_context_from_retrieval(retrieval_payload)
+            context_text = self._build_enhanced_context_from_retrieval(
+                retrieval_payload
+            )
             search_quality = retrieval_payload.get("search_quality", {})
 
             # 3. Enhanced response generation with real LLM
             generation_strategy = response_strategy or self.cfg.response_strategy
-            answer, generation_used, response_metadata = await self._generate_enhanced_response(
-                user_id, message, context_text, generation_strategy, conversation_history
+            (
+                answer,
+                generation_used,
+                response_metadata,
+            ) = await self._generate_enhanced_response(
+                user_id,
+                message,
+                context_text,
+                generation_strategy,
+                conversation_history,
             )
 
             # 4. Store assistant reply with enhanced metadata
-            await self._persist_assistant_message(user_id, answer, {
-                "route": retrieval_payload.get("route"),
-                "generation_used": generation_used,
-                "search_quality": search_quality,
-                "response_metadata": response_metadata,
-                "context_length": len(context_text),
-                "elapsed_time": time.time() - start_time
-            })
+            await self._persist_assistant_message(
+                user_id,
+                answer,
+                {
+                    "route": retrieval_payload.get("route"),
+                    "generation_used": generation_used,
+                    "search_quality": search_quality,
+                    "response_metadata": response_metadata,
+                    "context_length": len(context_text),
+                    "elapsed_time": time.time() - start_time,
+                },
+            )
 
             elapsed_time = time.time() - start_time
 
-            self._telemetry("enhanced_chat_complete", {
-                "user_id": user_id,
-                "generation_used": generation_used,
-                "context_length": len(context_text),
-                "response_strategy": response_metadata.get("strategy", "unknown"),
-                "search_quality": search_quality.get("quality_assessment", "unknown"),
-                "elapsed_time": elapsed_time
-            })
+            self._telemetry(
+                "enhanced_chat_complete",
+                {
+                    "user_id": user_id,
+                    "generation_used": generation_used,
+                    "context_length": len(context_text),
+                    "response_strategy": response_metadata.get("strategy", "unknown"),
+                    "search_quality": search_quality.get(
+                        "quality_assessment", "unknown"
+                    ),
+                    "elapsed_time": elapsed_time,
+                },
+            )
 
             return {
                 "answer": answer,
-                "route": retrieval_payload.get("route", route or self.cfg.route_default),
+                "route": retrieval_payload.get(
+                    "route", route or self.cfg.route_default
+                ),
                 "retrieval": retrieval_payload,
                 "generation_used": generation_used,
                 "search_quality": search_quality,
                 "response_metadata": response_metadata,
-                "elapsed_time": elapsed_time
+                "elapsed_time": elapsed_time,
             }
 
         except Exception as e:
@@ -246,7 +291,7 @@ class EnhancedChatbotService:
                 "generation_used": False,
                 "search_quality": {"quality_assessment": "error"},
                 "response_metadata": {"strategy": "error_fallback", "error": str(e)},
-                "elapsed_time": elapsed_time
+                "elapsed_time": elapsed_time,
             }
 
     async def _execute_enhanced_rag(
@@ -254,7 +299,7 @@ class EnhancedChatbotService:
         message: str,
         route: Optional[str],
         top_k: Optional[int],
-        filters: Optional[Dict[str, Any]]
+        filters: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """Execute enhanced RAG retrieval with Atlas Vector Search"""
 
@@ -271,12 +316,17 @@ class EnhancedChatbotService:
                 search_docs=self.cfg.include_docs,
             )
 
-            self._telemetry("enhanced_rag_success", {
-                "route": search_result.get("route"),
-                "results_count": len(search_result.get("results", [])),
-                "atlas_used": search_result.get("meta", {}).get("atlas_used", False),
-                "fallback_applied": search_result.get("fallback_applied", False)
-            })
+            self._telemetry(
+                "enhanced_rag_success",
+                {
+                    "route": search_result.get("route"),
+                    "results_count": len(search_result.get("results", [])),
+                    "atlas_used": search_result.get("meta", {}).get(
+                        "atlas_used", False
+                    ),
+                    "fallback_applied": search_result.get("fallback_applied", False),
+                },
+            )
 
             return search_result
 
@@ -289,12 +339,11 @@ class EnhancedChatbotService:
                 "results": [],
                 "route": "error",
                 "meta": {"error": str(e)},
-                "search_quality": {"quality_assessment": "error"}
+                "search_quality": {"quality_assessment": "error"},
             }
 
     def _build_enhanced_context_from_retrieval(
-            self,
-            retrieval_payload: Dict[str, Any]
+        self, retrieval_payload: Dict[str, Any]
     ) -> str:
         """Build OPTIMIZED context for faster generation"""
 
@@ -308,9 +357,7 @@ class EnhancedChatbotService:
 
         # Take only the best snippets
         ordered_snippets = sorted(
-            snippets,
-            key=lambda s: float(s.get("score", 0.0)),
-            reverse=True
+            snippets, key=lambda s: float(s.get("score", 0.0)), reverse=True
         )[:max_snippets]
 
         context_parts = []
@@ -364,9 +411,11 @@ class EnhancedChatbotService:
             return base_limit
 
         # Adjust based on generation service context window
-        if self.real_generation_available and hasattr(self.generation_service, 'config'):
+        if self.real_generation_available and hasattr(
+            self.generation_service, "config"
+        ):
             generation_config = self.generation_service.config
-            available_context = getattr(generation_config, 'max_context_length', 8192)
+            available_context = getattr(generation_config, "max_context_length", 8192)
 
             # Reserve space for system prompt, user query, and generation
             reserved_space = query_length + 1500  # Buffer for prompts and generation
@@ -382,7 +431,7 @@ class EnhancedChatbotService:
         message: str,
         context: str,
         strategy: str,
-        conversation_history: Optional[List[Dict[str, str]]] = None
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> Tuple[str, bool, Dict[str, Any]]:
         """Generate enhanced response using real LLM with advanced strategies"""
 
@@ -392,12 +441,13 @@ class EnhancedChatbotService:
         try:
             if strategy == "generation_only" and self.real_generation_available:
                 # Pure LLM generation without RAG context
-                answer = await self._generate_llm_response(user_id, message, "", conversation_history)
+                answer = await self._generate_llm_response(
+                    user_id, message, "", conversation_history
+                )
                 generation_used = True
-                response_metadata.update({
-                    "strategy": "generation_only",
-                    "context_used": False
-                })
+                response_metadata.update(
+                    {"strategy": "generation_only", "context_used": False}
+                )
 
             elif strategy == "rag_enhanced" and self.real_generation_available:
                 # Enhanced RAG with real LLM (preferred)
@@ -405,11 +455,13 @@ class EnhancedChatbotService:
                     user_id, message, context, conversation_history
                 )
                 generation_used = True
-                response_metadata.update({
-                    "strategy": "rag_enhanced",
-                    "context_used": bool(context),
-                    "context_length": len(context)
-                })
+                response_metadata.update(
+                    {
+                        "strategy": "rag_enhanced",
+                        "context_used": bool(context),
+                        "context_length": len(context),
+                    }
+                )
 
             elif strategy == "template_only":
                 # Template-based response only
@@ -425,17 +477,23 @@ class EnhancedChatbotService:
                             user_id, message, context, conversation_history
                         )
                         generation_used = True
-                        response_metadata.update({
-                            "strategy": "rag_enhanced_fallback",
-                            "context_used": bool(context)
-                        })
+                        response_metadata.update(
+                            {
+                                "strategy": "rag_enhanced_fallback",
+                                "context_used": bool(context),
+                            }
+                        )
                     except Exception as gen_error:
-                        logger.warning(f"LLM generation failed, using template: {gen_error}")
+                        logger.warning(
+                            f"LLM generation failed, using template: {gen_error}"
+                        )
                         answer = self._generate_template_response(message, context)
-                        response_metadata.update({
-                            "strategy": "template_fallback",
-                            "generation_error": str(gen_error)
-                        })
+                        response_metadata.update(
+                            {
+                                "strategy": "template_fallback",
+                                "generation_error": str(gen_error),
+                            }
+                        )
                 else:
                     # Template-only fallback
                     answer = self._generate_template_response(message, context)
@@ -448,19 +506,16 @@ class EnhancedChatbotService:
 
             # Final fallback
             answer = self._enhanced_fallback_answer(message, context)
-            response_metadata.update({
-                "strategy": "error_fallback",
-                "error": str(e)
-            })
+            response_metadata.update({"strategy": "error_fallback", "error": str(e)})
 
             return answer, False, response_metadata
 
     async def _generate_rag_enhanced_response(
-            self,
-            user_id: str,
-            message: str,
-            context: str,
-            conversation_history: Optional[List[Dict[str, str]]] = None
+        self,
+        user_id: str,
+        message: str,
+        context: str,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> str:
         """Generate RAG-enhanced response with SMART token limits"""
 
@@ -469,7 +524,10 @@ class EnhancedChatbotService:
 
         # SMART TOKEN LIMITS based on query type
         # Short answers for simple questions
-        if any(word in message.lower() for word in ["what is", "define", "explain briefly", "who is"]):
+        if any(
+            word in message.lower()
+            for word in ["what is", "define", "explain briefly", "who is"]
+        ):
             max_tokens = 100  # Short response
         elif "?" in message and len(message) < 50:
             max_tokens = 75  # Simple question
@@ -485,15 +543,15 @@ class EnhancedChatbotService:
                 messages=messages,
                 max_tokens=max_tokens,  # Use smart limit
                 temperature=self.cfg.generation_temperature,
-                stream=False
+                stream=False,
             )
 
             # Handle async generator if needed
-            if hasattr(response, '__aiter__'):
+            if hasattr(response, "__aiter__"):
                 chunks = []
                 async for chunk in response:
                     chunks.append(str(chunk))
-                response = ''.join(chunks)
+                response = "".join(chunks)
 
             return self._post_process_llm_response(response)
 
@@ -502,11 +560,11 @@ class EnhancedChatbotService:
             raise
 
     async def _generate_llm_response(
-            self,
-            user_id: str,
-            message: str,
-            context: str,
-            conversation_history: Optional[List[Dict[str, str]]] = None
+        self,
+        user_id: str,
+        message: str,
+        context: str,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> str:
         """Generate response using real LLM (with or without context)"""
 
@@ -518,7 +576,7 @@ class EnhancedChatbotService:
 
         if conversation_history and self.cfg.enable_conversation_memory:
             prompt_parts.append("Previous conversation:")
-            for msg in conversation_history[-self.cfg.max_conversation_history:]:
+            for msg in conversation_history[-self.cfg.max_conversation_history :]:
                 role = msg.get("role", "user")
                 content = msg.get("content", "")
                 prompt_parts.append(f"{role.title()}: {content}")
@@ -535,15 +593,15 @@ class EnhancedChatbotService:
                 prompt=prompt,
                 max_tokens=self.cfg.generation_max_tokens,
                 temperature=self.cfg.generation_temperature,
-                stream=False  # CHANGED: Force non-streaming
+                stream=False,  # CHANGED: Force non-streaming
             )
 
             # ADDED: Handle async generator if returned
-            if hasattr(response, '__aiter__'):
+            if hasattr(response, "__aiter__"):
                 chunks = []
                 async for chunk in response:
                     chunks.append(str(chunk))
-                response = ''.join(chunks)
+                response = "".join(chunks)
 
             return self._post_process_llm_response(response)
 
@@ -552,11 +610,11 @@ class EnhancedChatbotService:
             raise
 
     def _build_enhanced_chat_messages(
-            self,
-            user_id: str,
-            message: str,
-            context: str,
-            conversation_history: Optional[List[Dict[str, str]]] = None
+        self,
+        user_id: str,
+        message: str,
+        context: str,
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, str]]:
         """Build OPTIMIZED chat messages for speed"""
 
@@ -588,8 +646,10 @@ class EnhancedChatbotService:
             # Try to convert to string
             try:
                 response = str(response)
-            except:
-                return "I apologize, but I encountered an issue processing the response."
+            except Exception:
+                return (
+                    "I apologize, but I encountered an issue processing the response."
+                )
 
         if not response:
             return "I apologize, but I couldn't generate a proper response. Please try again."
@@ -622,16 +682,16 @@ class EnhancedChatbotService:
             context_preview = context[:800] + "..." if len(context) > 800 else context
 
             return (
-                f"Based on the available information:\n\n"
+                "Based on the available information:\n\n"
                 f"{context_preview}\n\n"
-                f"This should help address your question about: \"{message[:100]}...\"\n\n"
-                f"If you need more specific details, please let me know!"
+                f'This should help address your question about: "{message[:100]}..."\n\n'
+                "If you need more specific details, please let me know!"
             )
         else:
             return (
-                f"I understand you're asking about: \"{message[:100]}...\"\n\n"
-                f"I don't have specific information available right now, but I'd be happy to help "
-                f"if you could provide more details or rephrase your question."
+                f'I understand you\'re asking about: "{message[:100]}..."\n\n'
+                "I don't have specific information available right now, but I'd be happy to help "
+                "if you could provide more details or rephrase your question."
             )
 
     def _enhanced_fallback_answer(self, message: str, context: str = "") -> str:
@@ -650,19 +710,16 @@ class EnhancedChatbotService:
             )
 
     async def _persist_user_message(
-        self,
-        user_id: str,
-        message: str,
-        metadata: Dict[str, Any]
+        self, user_id: str, message: str, metadata: Dict[str, Any]
     ) -> None:
         """Enhanced user message persistence with metadata"""
         try:
-            enhanced_metadata = {
+            _enhanced_metadata = {
                 **metadata,
                 "real_generation_available": self.real_generation_available,
                 "rag_enabled": self.cfg.rag_enabled,
                 "timestamp": time.time(),
-                "service_version": "enhanced_v2"
+                "service_version": "enhanced_v2",
             }
 
             # Integration point for conversation history storage
@@ -672,19 +729,16 @@ class EnhancedChatbotService:
             logger.warning(f"Enhanced user message persistence failed: {e}")
 
     async def _persist_assistant_message(
-        self,
-        user_id: str,
-        message: str,
-        metadata: Dict[str, Any]
+        self, user_id: str, message: str, metadata: Dict[str, Any]
     ) -> None:
         """Enhanced assistant message persistence with generation metadata"""
         try:
-            enhanced_metadata = {
+            _enhanced_metadata = {
                 **metadata,
                 "message_length": len(message),
                 "real_ai_used": metadata.get("generation_used", False),
                 "timestamp": time.time(),
-                "service_version": "enhanced_v2"
+                "service_version": "enhanced_v2",
             }
 
             # Integration point for conversation history storage

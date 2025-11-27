@@ -1,10 +1,11 @@
 """Redis data models for caching, sessions, and analytics"""
+
 import uuid
 import json
 import logging
 from typing import Dict, List, Optional, Any
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from dataclasses import dataclass
 
 from app.database.redis_connection import get_redis
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CacheKey:
     """Redis key management"""
+
     prefix: str
     identifier: str
 
@@ -49,14 +51,16 @@ class RedisBaseModel:
         except (json.JSONDecodeError, TypeError):
             return data
 
+
 class CacheModel(RedisBaseModel):
     """FAQ response caching model"""
 
     def __init__(self):
         super().__init__("cache:faq")
 
-    def set_response(self, question_hash: str, response: Dict[str, Any],
-                     ttl: Optional[int] = None) -> bool:
+    def set_response(
+        self, question_hash: str, response: Dict[str, Any], ttl: Optional[int] = None
+    ) -> bool:
         """Cache FAQ response"""
         try:
             key = self._make_key(question_hash)
@@ -65,14 +69,10 @@ class CacheModel(RedisBaseModel):
             cache_data = {
                 "response": response,
                 "cached_at": datetime.now(timezone.utc).isoformat(),
-                "ttl": ttl
+                "ttl": ttl,
             }
 
-            return self.redis.setex(
-                key,
-                ttl,
-                self._serialize(cache_data)
-            )
+            return self.redis.setex(key, ttl, self._serialize(cache_data))
         except Exception as e:
             logger.error(f"Failed to cache response: {e}")
             return False
@@ -105,8 +105,13 @@ class CacheModel(RedisBaseModel):
             logger.error(f"Failed to invalidate cache: {e}")
             return 0
 
-    def cache_with_metadata(self, question_hash: str, response: Dict[str, Any],
-                            ttl: Optional[int] = None, tags: List[str] = None) -> bool:
+    def cache_with_metadata(
+        self,
+        question_hash: str,
+        response: Dict[str, Any],
+        ttl: Optional[int] = None,
+        tags: List[str] = None,
+    ) -> bool:
         """Cache response with metadata and tags"""
         try:
             key = self._make_key(question_hash)
@@ -118,7 +123,7 @@ class CacheModel(RedisBaseModel):
                 "cached_at": datetime.now(timezone.utc).isoformat(),
                 "ttl": ttl,
                 "tags": tags,
-                "access_count": 0
+                "access_count": 0,
             }
 
             success = self.redis.setex(key, ttl, self._serialize(cache_data))
@@ -163,13 +168,11 @@ class SessionModel(RedisBaseModel):
                 "user_data": user_data,
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "last_activity": datetime.now(timezone.utc).isoformat(),
-                "chat_history": []
+                "chat_history": [],
             }
 
             return self.redis.setex(
-                key,
-                config.redis.session_ttl,
-                self._serialize(session_data)
+                key, config.redis.session_ttl, self._serialize(session_data)
             )
         except Exception as e:
             logger.error(f"Failed to create session: {e}")
@@ -199,21 +202,18 @@ class SessionModel(RedisBaseModel):
                 return False
 
             chat_history = session.get("chat_history", [])
-            chat_history.append({
-                **message,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            })
+            chat_history.append(
+                {**message, "timestamp": datetime.now(timezone.utc).isoformat()}
+            )
 
             if len(chat_history) > config.max_chat_history:
-                chat_history = chat_history[-config.max_chat_history:]
+                chat_history = chat_history[-config.max_chat_history :]
 
             session["chat_history"] = chat_history
 
             key = self._make_key(session_id)
             return self.redis.setex(
-                key,
-                config.redis.session_ttl,
-                self._serialize(session)
+                key, config.redis.session_ttl, self._serialize(session)
             )
         except Exception as e:
             logger.error(f"Failed to add to chat history: {e}")
@@ -242,10 +242,7 @@ class AnalyticsModel(RedisBaseModel):
             event_key = f"event:{event_type}:{timestamp.strftime('%Y%m%d')}"
             key = self._make_key(event_key)
 
-            event_record = {
-                "timestamp": timestamp.isoformat(),
-                "data": event_data
-            }
+            event_record = {"timestamp": timestamp.isoformat(), "data": event_data}
 
             self.redis.lpush(key, self._serialize(event_record))
             self.redis.expire(key, config.redis.analytics_ttl)
@@ -254,6 +251,7 @@ class AnalyticsModel(RedisBaseModel):
         except Exception as e:
             logger.error(f"Failed to record event: {e}")
             return False
+
 
 class PopularityTracker(RedisBaseModel):
     """Track popular questions using Redis Sorted Sets"""
@@ -277,7 +275,7 @@ class PopularityTracker(RedisBaseModel):
         """Get trending questions from today"""
         current_day = int(time.time() // 86400)
         day_key = self._make_key(f"day:{current_day}")
-        return self.redis.zrevrange(day_key, 0, limit-1, withscores=True)
+        return self.redis.zrevrange(day_key, 0, limit - 1, withscores=True)
 
 
 class NotificationModel(RedisBaseModel):
@@ -298,14 +296,16 @@ class NotificationModel(RedisBaseModel):
                 "title": notification["title"],
                 "message": notification["message"],
                 "data": notification.get("data", {}),
-                "read": False
+                "read": False,
             }
 
             self.redis.lpush(key, self._serialize(notification_data))
             self.redis.ltrim(key, 0, 49)
             self.redis.expire(key, 604800)
 
-            logger.info(f"Notification added for user {user_id}: {notification['title']}")
+            logger.info(
+                f"Notification added for user {user_id}: {notification['title']}"
+            )
             return True
 
         except Exception as e:
@@ -326,7 +326,9 @@ class NotificationModel(RedisBaseModel):
                 notification = self._deserialize(notification_data)
                 notifications.append(notification)
 
-            logger.debug(f"Retrieved {len(notifications)} notifications for user {user_id}")
+            logger.debug(
+                f"Retrieved {len(notifications)} notifications for user {user_id}"
+            )
             return notifications
 
         except Exception as e:
@@ -382,10 +384,10 @@ class BillingCacheModel(RedisBaseModel):
         super().__init__("billing")
 
     async def cache_subscription(
-            self,
-            user_id: str,
-            subscription: Any,
-            ttl: int = 300  # 5 minutes
+        self,
+        user_id: str,
+        subscription: Any,
+        ttl: int = 300,  # 5 minutes
     ) -> bool:
         """Cache user subscription"""
         try:
@@ -398,18 +400,16 @@ class BillingCacheModel(RedisBaseModel):
                 "status": subscription.status,
                 "billing_cycle": subscription.billing_cycle,
                 "started_at": subscription.started_at.isoformat(),
-                "ends_at": subscription.ends_at.isoformat() if subscription.ends_at else None,
+                "ends_at": subscription.ends_at.isoformat()
+                if subscription.ends_at
+                else None,
                 "auto_renew": subscription.auto_renew,
                 "limits": subscription.limits,
                 "amount_cents": subscription.amount_cents,
-                "currency": subscription.currency
+                "currency": subscription.currency,
             }
 
-            return self.redis.setex(
-                key,
-                ttl,
-                self._serialize(sub_data)
-            )
+            return self.redis.setex(key, ttl, self._serialize(sub_data))
         except Exception as e:
             logger.error(f"Failed to cache subscription: {e}")
             return False
@@ -428,28 +428,22 @@ class BillingCacheModel(RedisBaseModel):
             return None
 
     async def cache_quota(
-            self,
-            user_id: str,
-            resource_type: str,
-            quota_info: Dict[str, Any],
-            ttl: int = 60  # 1 minute
+        self,
+        user_id: str,
+        resource_type: str,
+        quota_info: Dict[str, Any],
+        ttl: int = 60,  # 1 minute
     ) -> bool:
         """Cache quota information"""
         try:
             key = self._make_key(f"quota:{user_id}:{resource_type}")
-            return self.redis.setex(
-                key,
-                ttl,
-                self._serialize(quota_info)
-            )
+            return self.redis.setex(key, ttl, self._serialize(quota_info))
         except Exception as e:
             logger.error(f"Failed to cache quota: {e}")
             return False
 
     async def get_cached_quota(
-            self,
-            user_id: str,
-            resource_type: str
+        self, user_id: str, resource_type: str
     ) -> Optional[Dict[str, Any]]:
         """Get cached quota information"""
         try:
@@ -464,19 +458,15 @@ class BillingCacheModel(RedisBaseModel):
             return None
 
     async def cache_usage_summary(
-            self,
-            user_id: str,
-            summary: Dict[str, Any],
-            ttl: int = 300  # 5 minutes
+        self,
+        user_id: str,
+        summary: Dict[str, Any],
+        ttl: int = 300,  # 5 minutes
     ) -> bool:
         """Cache usage summary"""
         try:
             key = self._make_key(f"usage_summary:{user_id}")
-            return self.redis.setex(
-                key,
-                ttl,
-                self._serialize(summary)
-            )
+            return self.redis.setex(key, ttl, self._serialize(summary))
         except Exception as e:
             logger.error(f"Failed to cache usage summary: {e}")
             return False
@@ -500,7 +490,7 @@ class BillingCacheModel(RedisBaseModel):
             patterns = [
                 f"subscription:{user_id}",
                 f"quota:{user_id}:*",
-                f"usage_summary:{user_id}"
+                f"usage_summary:{user_id}",
             ]
 
             deleted = 0

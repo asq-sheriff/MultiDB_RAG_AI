@@ -1,7 +1,7 @@
 import uuid
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import List, Optional, Dict, Any, Tuple
+from datetime import datetime, timezone
+from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 import asyncio
 
@@ -11,9 +11,11 @@ logger = logging.getLogger(__name__)
 
 CHATBOT_KEYSPACE = "chatbot_ks"
 
+
 @dataclass
 class ConversationMessage:
     """Individual conversation message"""
+
     session_id: uuid.UUID
     actor: str
     message: str
@@ -30,6 +32,7 @@ class ConversationMessage:
 @dataclass
 class UserFeedback:
     """User feedback entry"""
+
     feedback_id: uuid.UUID
     user_id: str
     session_id: uuid.UUID
@@ -43,6 +46,7 @@ class UserFeedback:
 @dataclass
 class KnowledgeEntry:
     """Knowledge base entry"""
+
     category: str
     question_hash: str
     question: str
@@ -126,17 +130,17 @@ class EnhancedConversationHistory:
             logger.error(f"Failed to ensure conversation history tables: {e}")
 
     async def save_message(
-            self,
-            session_id: uuid.UUID,
-            actor: str,
-            message: str,
-            confidence: Optional[float] = None,
-            cached: Optional[bool] = None,
-            response_time_ms: Optional[int] = None,
-            route_used: Optional[str] = None,
-            generation_used: Optional[bool] = None,
-            embedding_model: Optional[str] = None,
-            metadata: Optional[Dict[str, str]] = None
+        self,
+        session_id: uuid.UUID,
+        actor: str,
+        message: str,
+        confidence: Optional[float] = None,
+        cached: Optional[bool] = None,
+        response_time_ms: Optional[int] = None,
+        route_used: Optional[str] = None,
+        generation_used: Optional[bool] = None,
+        embedding_model: Optional[str] = None,
+        metadata: Optional[Dict[str, str]] = None,
     ) -> uuid.UUID:
         """Save message to conversation history"""
         if not self.connection.is_connected():
@@ -162,15 +166,34 @@ class EnhancedConversationHistory:
             if metadata:
                 metadata_map = {k: str(v) for k, v in metadata.items()}
 
-            session.execute(insert_cql, (
-                session_id, timestamp, message_id, actor, message,
-                confidence, cached, response_time_ms, route_used,
-                generation_used, embedding_model, metadata_map
-            ))
+            session.execute(
+                insert_cql,
+                (
+                    session_id,
+                    timestamp,
+                    message_id,
+                    actor,
+                    message,
+                    confidence,
+                    cached,
+                    response_time_ms,
+                    route_used,
+                    generation_used,
+                    embedding_model,
+                    metadata_map,
+                ),
+            )
 
             asyncio.create_task(
-                self._update_conversation_summary(session_id, actor, response_time_ms, confidence, route_used,
-                                                  generation_used))
+                self._update_conversation_summary(
+                    session_id,
+                    actor,
+                    response_time_ms,
+                    confidence,
+                    route_used,
+                    generation_used,
+                )
+            )
 
             logger.debug(f"Message saved: {message_id} for session {session_id}")
             return message_id
@@ -180,13 +203,13 @@ class EnhancedConversationHistory:
             return uuid.uuid4()
 
     async def _update_conversation_summary(
-            self,
-            session_id: uuid.UUID,
-            actor: str,
-            response_time_ms: Optional[int],
-            confidence: Optional[float],
-            route_used: Optional[str],
-            generation_used: Optional[bool]
+        self,
+        session_id: uuid.UUID,
+        actor: str,
+        response_time_ms: Optional[int],
+        confidence: Optional[float],
+        route_used: Optional[str],
+        generation_used: Optional[bool],
     ) -> None:
         """Update conversation summary statistics"""
         if not self.connection.is_connected():
@@ -211,22 +234,25 @@ class EnhancedConversationHistory:
             generation_increment = 1 if generation_used else 0
             response_time = response_time_ms or 0
 
-            session.execute(update_cql, (
-                datetime.now(timezone.utc),
-                response_time,
-                routes_set,
-                generation_increment,
-                session_id
-            ))
+            session.execute(
+                update_cql,
+                (
+                    datetime.now(timezone.utc),
+                    response_time,
+                    routes_set,
+                    generation_increment,
+                    session_id,
+                ),
+            )
 
         except Exception as e:
             logger.debug(f"Failed to update conversation summary: {e}")
 
     def get_session_history(
-            self,
-            session_id: uuid.UUID,
-            limit: int = 50,
-            start_time: Optional[datetime] = None
+        self,
+        session_id: uuid.UUID,
+        limit: int = 50,
+        start_time: Optional[datetime] = None,
     ) -> List[ConversationMessage]:
         """Get conversation history for a session"""
         if not self.connection.is_connected():
@@ -273,7 +299,7 @@ class EnhancedConversationHistory:
                     response_time_ms=row.response_time_ms,
                     route_used=row.route_used,
                     generation_used=row.generation_used,
-                    metadata=dict(row.metadata) if row.metadata else None
+                    metadata=dict(row.metadata) if row.metadata else None,
                 )
                 messages.append(message)
 
@@ -286,8 +312,7 @@ class EnhancedConversationHistory:
             return []
 
     def get_conversation_analytics(
-            self,
-            session_id: uuid.UUID
+        self, session_id: uuid.UUID
     ) -> Optional[Dict[str, Any]]:
         """Get conversation analytics"""
         if not self.connection.is_connected():
@@ -312,23 +337,31 @@ class EnhancedConversationHistory:
 
             avg_response_time = (
                 summary_row.total_response_time_ms / summary_row.message_count
-                if summary_row.message_count > 0 else 0
+                if summary_row.message_count > 0
+                else 0
             )
 
             generation_rate = (
                 summary_row.generation_count / summary_row.message_count
-                if summary_row.message_count > 0 else 0
+                if summary_row.message_count > 0
+                else 0
             )
 
             return {
                 "session_id": str(summary_row.session_id),
                 "user_id": summary_row.user_id,
-                "start_time": summary_row.start_time.isoformat() if summary_row.start_time else None,
-                "end_time": summary_row.end_time.isoformat() if summary_row.end_time else None,
+                "start_time": summary_row.start_time.isoformat()
+                if summary_row.start_time
+                else None,
+                "end_time": summary_row.end_time.isoformat()
+                if summary_row.end_time
+                else None,
                 "message_count": summary_row.message_count,
                 "avg_response_time_ms": avg_response_time,
                 "avg_confidence": summary_row.avg_confidence,
-                "routes_used": list(summary_row.routes_used) if summary_row.routes_used else [],
+                "routes_used": list(summary_row.routes_used)
+                if summary_row.routes_used
+                else [],
                 "generation_rate": generation_rate,
                 "cache_hit_rate": summary_row.cache_hit_rate,
                 "real_ai_usage": generation_rate > 0,
@@ -348,10 +381,14 @@ class EnhancedConversationHistory:
             session = self.connection.get_session()
             session.execute(f"USE {self.keyspace}")
 
-            delete_history_cql = f"DELETE FROM {self.keyspace}.conversation_history WHERE session_id = ?"
+            delete_history_cql = (
+                f"DELETE FROM {self.keyspace}.conversation_history WHERE session_id = ?"
+            )
             session.execute(delete_history_cql, (session_id,))
 
-            delete_summary_cql = f"DELETE FROM {self.keyspace}.conversation_summary WHERE session_id = ?"
+            delete_summary_cql = (
+                f"DELETE FROM {self.keyspace}.conversation_summary WHERE session_id = ?"
+            )
             session.execute(delete_summary_cql, (session_id,))
 
             logger.info(f"Session deleted: {session_id}")
@@ -464,7 +501,9 @@ class EnhancedKnowledgeBase:
         except Exception as e:
             logger.error(f"Failed to ensure knowledge base tables: {e}")
 
-    async def get_faq_seed_rows(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    async def get_faq_seed_rows(
+        self, limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """Get FAQ rows for seeding MongoDB"""
         if not self.connection.is_connected():
             sample_faqs = [
@@ -499,7 +538,7 @@ class EnhancedKnowledgeBase:
                     "updated_at": "2025-08-12T12:00:00Z",
                     "version": 1,
                     "embedding_model": "sentence-transformers/all-mpnet-base-v2",
-                }
+                },
             ]
 
             if limit is not None and limit > 0:
@@ -527,8 +566,10 @@ class EnhancedKnowledgeBase:
                     "scylla_key": f"faq:{row.question_hash}",
                     "question": row.question,
                     "answer": row.answer,
-                    "updated_at": row.updated_at.isoformat() if row.updated_at else None,
-                    "version": getattr(row, 'version', 1),
+                    "updated_at": row.updated_at.isoformat()
+                    if row.updated_at
+                    else None,
+                    "version": getattr(row, "version", 1),
                     "embedding_model": row.embedding_model,
                 }
                 faq_rows.append(faq_row)

@@ -10,8 +10,8 @@ import asyncio
 import logging
 import os
 import time
+import importlib
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 from fastapi import FastAPI, HTTPException, Depends
@@ -20,15 +20,18 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Enhanced database connections
-from app.database.mongo_connection import init_enhanced_mongo, close_enhanced_mongo, enhanced_mongo_manager
+from app.database.mongo_connection import (
+    init_enhanced_mongo,
+    close_enhanced_mongo,
+    enhanced_mongo_manager,
+)
 
 from app.core.auth_dependencies import get_admin_user
 from app.database.postgres_models import User
 
 # Configure logging early
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,7 @@ startup_time = time.time()
 app_state = {
     "services_initialized": False,
     "startup_errors": [],
-    "initialization_time": 0.0
+    "initialization_time": 0.0,
 }
 
 
@@ -80,6 +83,7 @@ async def _safe_initialize_postgresql() -> bool:
         app_state["startup_errors"].append(f"PostgreSQL initialization failed: {e}")
         return False
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manages application startup and shutdown events."""
@@ -87,7 +91,6 @@ async def lifespan(app: FastAPI):
 
     # Import managers and services inside the lifespan to ensure deferred initialization
     from app.database.postgres_connection import postgres_manager
-    from app.database.mongo_connection import init_enhanced_mongo, close_enhanced_mongo
     from app.database.redis_connection import redis_manager
     from app.dependencies import get_embedding_service, get_generation_service
     from app.config import config
@@ -122,12 +125,13 @@ async def _safe_initialize_ai_services() -> Dict[str, Any]:
         "knowledge_service": False,
         "chatbot_service": False,
         "any_services_available": False,
-        "errors": []
+        "errors": [],
     }
 
     # Try to initialize embedding service
     try:
         from app.dependencies import embedding_service
+
         if embedding_service is not None:
             status["embedding_service"] = True
             logger.info("✅ EmbeddingService available")
@@ -141,6 +145,7 @@ async def _safe_initialize_ai_services() -> Dict[str, Any]:
     # Try to initialize generation service
     try:
         from app.dependencies import generation_service
+
         if generation_service is not None:
             status["generation_service"] = True
             logger.info("✅ GenerationService available")
@@ -154,6 +159,7 @@ async def _safe_initialize_ai_services() -> Dict[str, Any]:
     # Try to initialize knowledge service
     try:
         from app.dependencies import knowledge_service
+
         if knowledge_service is not None:
             status["knowledge_service"] = True
             logger.info("✅ KnowledgeService available")
@@ -167,6 +173,7 @@ async def _safe_initialize_ai_services() -> Dict[str, Any]:
     # Try to initialize chatbot service
     try:
         from app.dependencies import chatbot_service
+
         if chatbot_service is not None:
             status["chatbot_service"] = True
             logger.info("✅ ChatbotService available")
@@ -178,12 +185,14 @@ async def _safe_initialize_ai_services() -> Dict[str, Any]:
         logger.warning(f"⚠️ ChatbotService initialization error: {e}")
 
     # Determine if any services are available
-    status["any_services_available"] = any([
-        status["embedding_service"],
-        status["generation_service"],
-        status["knowledge_service"],
-        status["chatbot_service"]
-    ])
+    status["any_services_available"] = any(
+        [
+            status["embedding_service"],
+            status["generation_service"],
+            status["knowledge_service"],
+            status["chatbot_service"],
+        ]
+    )
 
     return status
 
@@ -202,21 +211,31 @@ async def _safe_warmup_services() -> bool:
         warmup_task = asyncio.create_task(comprehensive_warmup())
 
         try:
-            warmup_results = await asyncio.wait_for(warmup_task, timeout=120.0)  # 2 minute timeout
+            warmup_results = await asyncio.wait_for(
+                warmup_task, timeout=120.0
+            )  # 2 minute timeout
 
             success_rate = warmup_results.get("overall", {}).get("success_rate", 0)
-            production_ready = warmup_results.get("overall", {}).get("production_ready", False)
+            production_ready = warmup_results.get("overall", {}).get(
+                "production_ready", False
+            )
 
-            logger.info(f"🔥 AI service warmup completed: {success_rate:.1%} success rate")
+            logger.info(
+                f"🔥 AI service warmup completed: {success_rate:.1%} success rate"
+            )
 
             # Log telemetry if available
             try:
                 from app.dependencies import enhanced_telemetry
-                enhanced_telemetry("app_startup_success", {
-                    "startup_time_seconds": time.time() - startup_time,
-                    "success_rate": success_rate,
-                    "production_ready": production_ready
-                })
+
+                enhanced_telemetry(
+                    "app_startup_success",
+                    {
+                        "startup_time_seconds": time.time() - startup_time,
+                        "success_rate": success_rate,
+                        "production_ready": production_ready,
+                    },
+                )
             except Exception:
                 pass  # Telemetry is optional
 
@@ -259,6 +278,7 @@ async def _safe_auto_seed() -> bool:
             logger.info("📄 Enhanced seeding not available, trying standard seeding...")
             try:
                 from app.utils import seed_knowledge_base
+
                 seed_knowledge_base(use_enhanced=False)
                 logger.info("✅ Standard auto-seeding completed")
                 return True
@@ -280,6 +300,7 @@ async def _safe_cleanup_services() -> None:
     """Safely cleanup services"""
     try:
         from app.dependencies import cleanup_enhanced_services
+
         await cleanup_enhanced_services()
     except Exception as e:
         logger.error(f"Service cleanup error: {e}")
@@ -293,7 +314,7 @@ async def _log_service_status() -> None:
             generation_service,
             knowledge_service,
             chatbot_service,
-            enhanced_mongo_manager
+            enhanced_mongo_manager,
         )
 
         ready_services = 0
@@ -308,7 +329,9 @@ async def _log_service_status() -> None:
         if chatbot_service is not None:
             ready_services += 1
 
-        logger.info(f"📊 Final Service Status: {ready_services}/{total_services} services ready")
+        logger.info(
+            f"📊 Final Service Status: {ready_services}/{total_services} services ready"
+        )
 
         # Check vector search availability with proper async handling
         if enhanced_mongo_manager and enhanced_mongo_manager.is_connected:
@@ -334,7 +357,7 @@ app = FastAPI(
     title="Enhanced AI Chatbot API",
     version="2.0.0",
     description="Production-ready AI chatbot with sentence-transformers/all-mpnet-base-v2, qwen3-1.7b, and Atlas Vector Search",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Enhanced CORS middleware
@@ -350,6 +373,7 @@ app.add_middleware(
 # -----------------------------
 # Enhanced Response Models
 # -----------------------------
+
 
 class HealthResponse(BaseModel):
     status: str
@@ -373,6 +397,7 @@ class ServiceStatusResponse(BaseModel):
 # Enhanced Health Endpoints
 # -----------------------------
 
+
 @app.get("/health", response_model=HealthResponse, tags=["health"])
 async def health() -> HealthResponse:
     """Basic health check with AI service status"""
@@ -384,6 +409,7 @@ async def health() -> HealthResponse:
         ai_services_status = {"services_ready": 0, "total_services": 4}
         try:
             from app.dependencies import get_comprehensive_service_status
+
             service_status = get_comprehensive_service_status()
             ai_services_status = service_status.get("services", ai_services_status)
         except Exception as e:
@@ -393,7 +419,9 @@ async def health() -> HealthResponse:
         status = "healthy" if mongo_ok and ai_ready else "degraded"
 
         # Include startup errors if any
-        startup_errors = app_state["startup_errors"] if app_state["startup_errors"] else None
+        startup_errors = (
+            app_state["startup_errors"] if app_state["startup_errors"] else None
+        )
 
         return HealthResponse(
             status=status,
@@ -403,10 +431,10 @@ async def health() -> HealthResponse:
                 "embedding_ready": ai_services_status.get("embedding_service", False),
                 "generation_ready": ai_services_status.get("generation_service", False),
                 "total_ready": ai_services_status.get("services_ready", 0),
-                "services_initialized": app_state["services_initialized"]
+                "services_initialized": app_state["services_initialized"],
             },
             uptime_seconds=time.time() - startup_time,
-            startup_errors=startup_errors
+            startup_errors=startup_errors,
         )
 
     except Exception as e:
@@ -417,7 +445,7 @@ async def health() -> HealthResponse:
             mongo=False,
             ai_services={"error": str(e)},
             uptime_seconds=time.time() - startup_time,
-            startup_errors=app_state["startup_errors"]
+            startup_errors=app_state["startup_errors"],
         )
 
 
@@ -429,6 +457,7 @@ async def detailed_health() -> ServiceStatusResponse:
         service_status = {}
         try:
             from app.dependencies import get_comprehensive_service_status
+
             service_status = get_comprehensive_service_status()
         except Exception as e:
             logger.error(f"Service status failed: {e}")
@@ -438,6 +467,7 @@ async def detailed_health() -> ServiceStatusResponse:
         memory_info = {}
         try:
             from app.dependencies import monitor_ai_service_memory
+
             memory_info = await monitor_ai_service_memory()
         except Exception as e:
             logger.debug(f"Memory monitoring failed: {e}")
@@ -466,14 +496,14 @@ async def detailed_health() -> ServiceStatusResponse:
             performance={
                 **service_status.get("performance_metrics", {}),
                 "memory_info": memory_info,
-                "uptime_seconds": time.time() - startup_time
+                "uptime_seconds": time.time() - startup_time,
             },
             timestamp=time.strftime("%Y-%m-%dT%H:%M:%S"),
             startup_info={
                 "services_initialized": app_state["services_initialized"],
                 "initialization_time": app_state["initialization_time"],
-                "startup_errors": app_state["startup_errors"]
-            }
+                "startup_errors": app_state["startup_errors"],
+            },
         )
 
     except Exception as e:
@@ -490,38 +520,36 @@ async def ai_services_health():
         # EmbeddingService status with error handling
         try:
             from app.dependencies import get_embedding_service
+
             embedding_service = get_embedding_service()
             result["embedding_service"] = {
                 "status": "healthy",
-                "ready": getattr(embedding_service, 'is_ready', False),
-                "performance": getattr(embedding_service, 'performance_stats', {})
+                "ready": getattr(embedding_service, "is_ready", False),
+                "performance": getattr(embedding_service, "performance_stats", {}),
             }
         except Exception as e:
-            result["embedding_service"] = {
-                "status": "unhealthy",
-                "error": str(e)
-            }
+            result["embedding_service"] = {"status": "unhealthy", "error": str(e)}
 
         # GenerationService status with error handling
         try:
             from app.dependencies import get_generation_service
+
             generation_service = get_generation_service()
             result["generation_service"] = {
                 "status": "healthy",
-                "ready": getattr(generation_service, 'is_ready', False),
-                "performance": getattr(generation_service, 'performance_stats', {})
+                "ready": getattr(generation_service, "is_ready", False),
+                "performance": getattr(generation_service, "performance_stats", {}),
             }
         except Exception as e:
-            result["generation_service"] = {
-                "status": "unhealthy",
-                "error": str(e)
-            }
+            result["generation_service"] = {"status": "unhealthy", "error": str(e)}
 
         return result
 
     except Exception as e:
         logger.error(f"AI services health check failed: {e}")
-        raise HTTPException(status_code=500, detail=f"AI services health check failed: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"AI services health check failed: {e}"
+        )
 
 
 @app.get("/health/memory", tags=["health"])
@@ -530,14 +558,12 @@ async def memory_health():
     try:
         try:
             from app.dependencies import monitor_ai_service_memory
+
             memory_info = await monitor_ai_service_memory()
         except Exception as e:
             memory_info = {"error": str(e), "monitoring_available": False}
 
-        return {
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            **memory_info
-        }
+        return {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"), **memory_info}
     except Exception as e:
         logger.error(f"Memory health check failed: {e}")
         raise HTTPException(status_code=500, detail=f"Memory health check failed: {e}")
@@ -554,25 +580,33 @@ async def database_health():
         scylla_status = "unknown"
         try:
             from app.database.scylla_models import EnhancedConversationHistory
+
             conv_history = EnhancedConversationHistory()
-            scylla_status = "connected" if conv_history.connection.is_connected() else "disconnected"
+            scylla_status = (
+                "connected"
+                if conv_history.connection.is_connected()
+                else "disconnected"
+            )
         except Exception as e:
             scylla_status = f"error: {e}"
 
         return {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "mongodb": mongo_health,
-            "scylladb": {"status": scylla_status}
+            "scylladb": {"status": scylla_status},
         }
 
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Database health check failed: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Database health check failed: {e}"
+        )
 
 
 # -----------------------------
-# Enhanced Admin Endpoints with Authentication (TODO: Add auth)
+# Enhanced Admin Endpoints with Authentication
 # -----------------------------
+
 
 @app.post("/admin/seed-enhanced", tags=["admin"])
 async def trigger_enhanced_seeding(
@@ -583,7 +617,7 @@ async def trigger_enhanced_seeding(
     enable_docx: bool = True,
     enable_csv: bool = True,
     dry_run: bool = False,
-    admin_user: User = Depends(get_admin_user)
+    admin_user: User = Depends(get_admin_user),
 ):
     """Trigger enhanced seeding pipeline with configurable options"""
     try:
@@ -593,7 +627,7 @@ async def trigger_enhanced_seeding(
         except ImportError:
             raise HTTPException(
                 status_code=503,
-                detail="Enhanced seeding not available - missing dependencies"
+                detail="Enhanced seeding not available - missing dependencies",
             )
 
         # Set environment variables for this request
@@ -605,7 +639,7 @@ async def trigger_enhanced_seeding(
             "SEED_ENABLE_PDF": "1" if enable_pdf else "0",
             "SEED_ENABLE_DOCX": "1" if enable_docx else "0",
             "SEED_ENABLE_CSV": "1" if enable_csv else "0",
-            "SEED_DRY_RUN": "1" if dry_run else "0"
+            "SEED_DRY_RUN": "1" if dry_run else "0",
         }
 
         # Backup and set environment variables
@@ -627,14 +661,13 @@ async def trigger_enhanced_seeding(
             "message": "Enhanced seeding completed successfully",
             "execution_time_seconds": elapsed,
             "dry_run": dry_run,
-            "details": result
+            "details": result,
         }
 
     except Exception as e:
         logger.error(f"❌ Enhanced seeding failed: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Enhanced seeding failed: {str(e)}"
+            status_code=500, detail=f"Enhanced seeding failed: {str(e)}"
         )
     finally:
         # Restore environment variables
@@ -646,19 +679,18 @@ async def trigger_enhanced_seeding(
 
 
 @app.get("/admin/seed-status", tags=["admin"])
-async def get_seeding_status(
-    admin_user: User = Depends(get_admin_user)
-):
+async def get_seeding_status(admin_user: User = Depends(get_admin_user)):
     """Get enhanced seeding system status and configuration"""
     try:
         # Check if enhanced seeding is available
         enhanced_available = False
         import_error = None
         try:
-            from app.utils.seed_data import main_advanced_seeding
-            enhanced_available = True
-        except ImportError as e:
-            import_error = str(e)
+            _mod = importlib.import_module("app.utils.seed_data")
+            enhanced_available = hasattr(_mod, "main_advanced_seeding")
+        except Exception as exc:
+            enhanced_available = False
+            import_error = exc
 
         # Get configuration if available
         seeding_config = {}
@@ -667,6 +699,7 @@ async def get_seeding_status(
         if enhanced_available:
             try:
                 from app.config import config
+
                 seeding_config = config.get_enhanced_seeding_config()
                 validation = config.validate_seeding_configuration()
             except Exception as e:
@@ -676,6 +709,7 @@ async def get_seeding_status(
         ai_status = {}
         try:
             from app.dependencies import get_comprehensive_service_status
+
             ai_status = get_comprehensive_service_status()
         except Exception as e:
             ai_status = {"error": str(e)}
@@ -687,29 +721,38 @@ async def get_seeding_status(
             "configuration": seeding_config,
             "validation": validation,
             "ai_services": {
-                "embedding_ready": ai_status.get("services", {}).get("embedding_service", False),
-                "generation_ready": ai_status.get("services", {}).get("generation_service", False),
-                "atlas_available": ai_status.get("database", {}).get("atlas_search_available", False)
+                "embedding_ready": ai_status.get("services", {}).get(
+                    "embedding_service", False
+                ),
+                "generation_ready": ai_status.get("services", {}).get(
+                    "generation_service", False
+                ),
+                "atlas_available": ai_status.get("database", {}).get(
+                    "atlas_search_available", False
+                ),
             },
             "capabilities": {
-                "real_embeddings": ai_status.get("configuration", {}).get("use_real_embeddings", False),
-                "atlas_search": ai_status.get("configuration", {}).get("enable_atlas_search", False),
-                "parallel_processing": seeding_config.get("performance", {}).get("parallel_processing", False)
-            }
+                "real_embeddings": ai_status.get("configuration", {}).get(
+                    "use_real_embeddings", False
+                ),
+                "atlas_search": ai_status.get("configuration", {}).get(
+                    "enable_atlas_search", False
+                ),
+                "parallel_processing": seeding_config.get("performance", {}).get(
+                    "parallel_processing", False
+                ),
+            },
         }
 
     except Exception as e:
         logger.error(f"Failed to get seeding status: {e}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get seeding status: {str(e)}"
+            status_code=500, detail=f"Failed to get seeding status: {str(e)}"
         )
 
 
 @app.post("/admin/cleanup", tags=["admin"])
-async def force_cleanup(
-    admin_user: User = Depends(get_admin_user)
-):
+async def force_cleanup(admin_user: User = Depends(get_admin_user)):
     """Force cleanup of AI services (admin only)"""
     logger.info(f"Admin {admin_user.email} triggered force cleanup")
     try:
@@ -721,9 +764,7 @@ async def force_cleanup(
 
 
 @app.post("/admin/warmup", tags=["admin"])
-async def force_warmup(
-    admin_user: User = Depends(get_admin_user)
-):
+async def force_warmup(admin_user: User = Depends(get_admin_user)):
     """Force warmup of AI services (admin only)"""
     logger.info(f"Admin {admin_user.email} triggered force warmup")
     try:
@@ -731,7 +772,7 @@ async def force_warmup(
         return {
             "status": "success" if warmup_success else "partial",
             "message": "AI service warmup completed",
-            "success": warmup_success
+            "success": warmup_success,
         }
     except Exception as e:
         logger.error(f"Force warmup failed: {e}")
@@ -742,11 +783,13 @@ async def force_warmup(
 # Development/Testing Endpoints
 # -----------------------------
 
+
 @app.get("/dev/test-embedding", tags=["development"])
 async def test_embedding_endpoint():
     """Test endpoint for embedding service (development only)"""
     try:
         from app.dependencies import get_embedding_service
+
         service = get_embedding_service()
 
         test_text = "This is a test query for the sentence-transformers/all-mpnet-base-v2 embedding service."
@@ -761,7 +804,7 @@ async def test_embedding_endpoint():
             "embedding_dimension": len(embedding),
             "time_seconds": elapsed,
             "embedding_preview": embedding[:5],
-            "service_stats": getattr(service, 'performance_stats', {})
+            "service_stats": getattr(service, "performance_stats", {}),
         }
 
     except Exception as e:
@@ -774,6 +817,7 @@ async def test_generation_endpoint():
     """Test endpoint for generation service (development only)"""
     try:
         from app.dependencies import get_generation_service
+
         service = get_generation_service()
 
         test_prompt = "Explain what artificial intelligence is in simple terms."
@@ -788,7 +832,7 @@ async def test_generation_endpoint():
             "generated_response": response,
             "time_seconds": elapsed,
             "response_length": len(response),
-            "service_stats": getattr(service, 'performance_stats', {})
+            "service_stats": getattr(service, "performance_stats", {}),
         }
 
     except Exception as e:
@@ -800,7 +844,10 @@ async def test_generation_endpoint():
 async def test_document_processing():
     """Test document processing capabilities"""
     try:
-        from app.utils.document_processor import EnhancedDocumentProcessor, ProcessingConfig
+        from app.utils.document_processor import (
+            EnhancedDocumentProcessor,
+            ProcessingConfig,
+        )
         from pathlib import Path
         import tempfile
 
@@ -810,7 +857,7 @@ async def test_document_processing():
             chunk_overlap=50,
             max_workers=2,
             use_parallel_processing=False,
-            supported_extensions=['.txt', '.md']
+            supported_extensions=[".txt", ".md"],
         )
 
         processor = EnhancedDocumentProcessor(config)
@@ -827,7 +874,7 @@ async def test_document_processing():
         """
 
         # Create temporary test file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
             f.write(test_text)
             temp_path = f.name
 
@@ -843,15 +890,15 @@ async def test_document_processing():
                     {
                         "chunk_id": chunk.chunk_id,
                         "content_length": len(chunk.content),
-                        "chunk_index": chunk.chunk_index
+                        "chunk_index": chunk.chunk_index,
                     }
                     for chunk in chunks[:3]  # First 3 chunks only
                 ],
                 "processor_config": {
                     "chunk_size": config.chunk_size,
                     "chunk_overlap": config.chunk_overlap,
-                    "supported_extensions": config.supported_extensions
-                }
+                    "supported_extensions": config.supported_extensions,
+                },
             }
 
         finally:
@@ -861,12 +908,15 @@ async def test_document_processing():
 
     except Exception as e:
         logger.error(f"Document processing test failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Document processing test failed: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Document processing test failed: {e}"
+        )
 
 
 # -----------------------------
 # Enhanced Router Loading with Better Error Handling
 # -----------------------------
+
 
 def _include_optional_router(module_path: str, router_attr: str = "router") -> None:
     """Enhanced router loading with comprehensive error handling"""
@@ -879,7 +929,9 @@ def _include_optional_router(module_path: str, router_attr: str = "router") -> N
     except ImportError as e:
         logger.warning(f"⚠️ Router {module_path} not found: {e}")
     except AttributeError as e:
-        logger.warning(f"⚠️ Router attribute '{router_attr}' not found in {module_path}: {e}")
+        logger.warning(
+            f"⚠️ Router attribute '{router_attr}' not found in {module_path}: {e}"
+        )
     except Exception as e:
         logger.error(f"❌ Failed to load router {module_path}: {e}")
 
@@ -892,8 +944,8 @@ routers_to_load = [
     ("app.api.endpoints.auth", "router"),
     ("app.api.endpoints.users", "router"),
     ("app.api.endpoints.search", "router"),  # Enhanced search with Atlas Vector Search
-    ("app.api.endpoints.chat", "router"),    # Enhanced chat with real LLM generation
-    ("app.api.endpoints.billing", "router")
+    ("app.api.endpoints.chat", "router"),  # Enhanced chat with real LLM generation
+    ("app.api.endpoints.billing", "router"),
 ]
 
 for module_path, router_attr in routers_to_load:
@@ -906,6 +958,7 @@ logger.info("✅ Router loading completed")
 # Global Error Handler
 # -----------------------------
 
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Global exception handler with enhanced logging"""
@@ -914,11 +967,15 @@ async def global_exception_handler(request, exc):
     # Try to log telemetry but don't fail if it's not available
     try:
         from app.dependencies import enhanced_telemetry
-        enhanced_telemetry("app_error", {
-            "error_type": type(exc).__name__,
-            "error_message": str(exc),
-            "endpoint": str(request.url.path)
-        })
+
+        enhanced_telemetry(
+            "app_error",
+            {
+                "error_type": type(exc).__name__,
+                "error_message": str(exc),
+                "endpoint": str(request.url.path),
+            },
+        )
     except Exception:
         pass  # Telemetry is optional
 
@@ -927,8 +984,8 @@ async def global_exception_handler(request, exc):
         content={
             "error": "Internal server error",
             "message": "An unexpected error occurred. Please check the logs.",
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")
-        }
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        },
     )
 
 
@@ -936,11 +993,13 @@ async def global_exception_handler(request, exc):
 # Root Endpoint
 # -----------------------------
 
+
 @app.get("/", tags=["root"])
 async def root():
     """Enhanced root endpoint with comprehensive service information"""
     try:
         from app.dependencies import get_comprehensive_service_status
+
         service_status = get_comprehensive_service_status()
     except Exception:
         service_status = {"services": {"services_ready": 0}, "database": {}}
@@ -953,13 +1012,17 @@ async def root():
         "startup_info": {
             "services_initialized": app_state["services_initialized"],
             "initialization_time": app_state["initialization_time"],
-            "startup_errors_count": len(app_state["startup_errors"])
+            "startup_errors_count": len(app_state["startup_errors"]),
         },
         "ai_services": {
             "embedding_model": "sentence-transformers/all-mpnet-base-v2",
             "generation_model": "qwen/qwen3-1.7b",
-            "services_ready": service_status.get("services", {}).get("services_ready", 0),
-            "atlas_search": service_status.get("database", {}).get("atlas_search_available", False)
+            "services_ready": service_status.get("services", {}).get(
+                "services_ready", 0
+            ),
+            "atlas_search": service_status.get("database", {}).get(
+                "atlas_search_available", False
+            ),
         },
         "endpoints": {
             "health": "/health",
@@ -967,8 +1030,8 @@ async def root():
             "chat": "/chat",
             "search": "/search",
             "docs": "/docs",
-            "admin": "/admin/seed-status"
-        }
+            "admin": "/admin/seed-status",
+        },
     }
 
 
@@ -977,10 +1040,4 @@ if __name__ == "__main__":
 
     logger.info("🚀 Starting Enhanced AI Chatbot Application in development mode...")
 
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

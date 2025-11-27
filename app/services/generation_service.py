@@ -17,14 +17,13 @@ from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
     GenerationConfig as HFGenerationConfig,
-    pipeline
 )
 
 logger = logging.getLogger(__name__)
 
 # Force MPS optimizations
 if torch.backends.mps.is_available():
-    torch.set_float32_matmul_precision('medium')  # Faster matmul on MPS
+    torch.set_float32_matmul_precision("medium")  # Faster matmul on MPS
 
 
 @dataclass
@@ -63,7 +62,7 @@ class GenerationConfig:
 
     # Performance settings
     batch_size: int = 1  # MPS works best with batch_size=1
-    max_length: int = 512 if fast_mode else 2048 # Reduce from 8192 for speed
+    max_length: int = 512 if fast_mode else 2048  # Reduce from 8192 for speed
     truncation: bool = True
     padding: str = "left"  # Left padding for generation
 
@@ -74,10 +73,12 @@ class GenerationConfig:
     # Preprocessing
     remove_invalid_values: bool = True  # Clean inputs
 
-    enable_postgresql: bool = os.getenv("GENERATION_ENABLE_POSTGRESQL", "false").lower() == "true"
+    enable_postgresql: bool = (
+        os.getenv("GENERATION_ENABLE_POSTGRESQL", "false").lower() == "true"
+    )
 
     @classmethod
-    def from_env(cls) -> 'GenerationConfig':
+    def from_env(cls) -> "GenerationConfig":
         """Create MPS-optimized config"""
         config = cls()
 
@@ -107,7 +108,9 @@ class GenerationService:
 
         # Threading
         self._model_lock = threading.Lock()
-        self._thread_pool = ThreadPoolExecutor(max_workers=self.config.thread_pool_workers)
+        self._thread_pool = ThreadPoolExecutor(
+            max_workers=self.config.thread_pool_workers
+        )
 
         # Performance tracking
         self._load_time = None
@@ -115,7 +118,9 @@ class GenerationService:
         self._generation_count = 0
         self._total_generation_time = 0.0
 
-        logger.info(f"Qwen3-1.7B Service initialized (MPS available: {self._using_mps})")
+        logger.info(
+            f"Qwen3-1.7B Service initialized (MPS available: {self._using_mps})"
+        )
 
     @property
     def is_ready(self) -> bool:
@@ -148,7 +153,7 @@ class GenerationService:
                     use_fast=self.config.use_fast_tokenizer,
                     trust_remote_code=True,
                     padding_side=self.config.padding,
-                    truncation_side="left"
+                    truncation_side="left",
                 )
 
                 if self._tokenizer.pad_token is None:
@@ -176,8 +181,7 @@ class GenerationService:
                     model_kwargs["device_map"] = device_map
 
                 self._model = AutoModelForCausalLM.from_pretrained(
-                    self.config.model_name,
-                    **model_kwargs
+                    self.config.model_name, **model_kwargs
                 )
 
                 # 4. Move model to MPS and optimize
@@ -240,18 +244,12 @@ class GenerationService:
 
             with torch.inference_mode():
                 inputs = self._tokenizer(
-                    "Hello",
-                    return_tensors="pt",
-                    truncation=True,
-                    max_length=10
+                    "Hello", return_tensors="pt", truncation=True, max_length=10
                 ).to(self._device)
 
                 with torch.amp.autocast("mps", dtype=torch.float16):
                     _ = self._model.generate(
-                        **inputs,
-                        max_new_tokens=5,
-                        do_sample=False,
-                        use_cache=True
+                        **inputs, max_new_tokens=5, do_sample=False, use_cache=True
                     )
 
             logger.info("✅ Model warmed up")
@@ -265,7 +263,7 @@ class GenerationService:
         max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
         stream: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Union[str, AsyncIterator[str]]:
         """Generate text with MPS optimizations"""
 
@@ -276,7 +274,7 @@ class GenerationService:
         await self.ensure_model_loaded()
 
         # Force non-streaming for stability
-        stream = False
+        # stream disabled for stability
 
         start_time = time.time()
 
@@ -289,9 +287,9 @@ class GenerationService:
                     prompt,
                     max_tokens,
                     temperature,
-                    kwargs
+                    kwargs,
                 ),
-                timeout=self.config.generation_timeout_seconds
+                timeout=self.config.generation_timeout_seconds,
             )
 
             elapsed = time.time() - start_time
@@ -310,18 +308,20 @@ class GenerationService:
             return result
 
         except asyncio.TimeoutError:
-            logger.error(f"Generation timeout after {self.config.generation_timeout_seconds}s")
+            logger.error(
+                f"Generation timeout after {self.config.generation_timeout_seconds}s"
+            )
             return "Generation timed out. Please try with a shorter prompt."
         except Exception as e:
             logger.error(f"Generation failed: {e}")
             return "Generation failed. Please try again."
 
     def _generate_optimized(
-            self,
-            prompt: str,
-            max_tokens: Optional[int],
-            temperature: Optional[float],
-            extra_kwargs: Dict[str, Any]
+        self,
+        prompt: str,
+        max_tokens: Optional[int],
+        temperature: Optional[float],
+        extra_kwargs: Dict[str, Any],
     ) -> str:
         """MPS-optimized generation with aggressive truncation and speed optimizations"""
 
@@ -348,7 +348,9 @@ class GenerationService:
                         system_msg = system_parts[0][:200] if system_parts[0] else ""
                         user_msg = user_parts[-1]
                         prompt = f"{system_msg}\n\n{user_msg}\n\nAssistant:"
-                        logger.debug(f"Intelligently truncated prompt to {len(prompt)} chars")
+                        logger.debug(
+                            f"Intelligently truncated prompt to {len(prompt)} chars"
+                        )
 
             # Tokenize with strict truncation
             inputs = self._tokenizer(
@@ -357,14 +359,16 @@ class GenerationService:
                 truncation=True,
                 max_length=max_input_tokens,
                 padding=False,
-                return_attention_mask=True  # Explicitly request attention mask
+                return_attention_mask=True,  # Explicitly request attention mask
             )
 
             # Log if truncation happened
             if self.config.fast_mode:  # Only log in non-fast mode to reduce overhead
                 original_tokens = len(self._tokenizer.encode(prompt))
                 if original_tokens > max_input_tokens:
-                    logger.debug(f"Input truncated: {original_tokens} -> {max_input_tokens} tokens")
+                    logger.debug(
+                        f"Input truncated: {original_tokens} -> {max_input_tokens} tokens"
+                    )
 
             # Move to device
             if self._using_mps:
@@ -372,6 +376,7 @@ class GenerationService:
 
             # Create a COPY of generation config (don't modify shared config!)
             from transformers import GenerationConfig as HFGenerationConfig
+
             gen_config = HFGenerationConfig(
                 max_new_tokens=max_tokens,
                 min_new_tokens=10,  # Prevent too-short responses
@@ -393,10 +398,10 @@ class GenerationService:
 
             # Remove unwanted parameters from extra_kwargs
             # These can slow down generation
-            extra_kwargs.pop('output_scores', None)
-            extra_kwargs.pop('output_attentions', None)
-            extra_kwargs.pop('output_hidden_states', None)
-            extra_kwargs.pop('return_dict_in_generate', None)
+            extra_kwargs.pop("output_scores", None)
+            extra_kwargs.pop("output_attentions", None)
+            extra_kwargs.pop("output_hidden_states", None)
+            extra_kwargs.pop("return_dict_in_generate", None)
 
             # Generate with optimizations
             with torch.inference_mode():  # Faster than no_grad
@@ -404,10 +409,10 @@ class GenerationService:
                     # Use autocast for MPS
                     with torch.amp.autocast("mps", dtype=torch.float16):
                         outputs = self._model.generate(
-                            input_ids=inputs['input_ids'],
-                            attention_mask=inputs['attention_mask'],
+                            input_ids=inputs["input_ids"],
+                            attention_mask=inputs["attention_mask"],
                             generation_config=gen_config,
-                            **extra_kwargs
+                            **extra_kwargs,
                         )
 
                         # Clear MPS cache after generation to prevent memory buildup
@@ -415,21 +420,21 @@ class GenerationService:
                             torch.mps.empty_cache()
                 else:
                     outputs = self._model.generate(
-                        input_ids=inputs['input_ids'],
-                        attention_mask=inputs['attention_mask'],
+                        input_ids=inputs["input_ids"],
+                        attention_mask=inputs["attention_mask"],
                         generation_config=gen_config,
-                        **extra_kwargs
+                        **extra_kwargs,
                     )
 
             # Efficient decoding
             # Only decode the generated tokens (not the input)
-            generated_ids = outputs[0][inputs['input_ids'].shape[-1]:]
+            generated_ids = outputs[0][inputs["input_ids"].shape[-1] :]
 
             # Decode with minimal processing
             response = self._tokenizer.decode(
                 generated_ids,
                 skip_special_tokens=True,
-                clean_up_tokenization_spaces=False if self.config.fast_mode else True
+                clean_up_tokenization_spaces=False if self.config.fast_mode else True,
             )
 
             # Quick cleanup and return
@@ -443,7 +448,9 @@ class GenerationService:
 
         except RuntimeError as e:
             if "out of memory" in str(e).lower():
-                logger.error("MPS out of memory - clearing cache and retrying with smaller context")
+                logger.error(
+                    "MPS out of memory - clearing cache and retrying with smaller context"
+                )
                 torch.mps.empty_cache()
                 # Retry with even smaller context
                 if len(prompt) > 500:
@@ -451,7 +458,7 @@ class GenerationService:
                         prompt[-500:],  # Take last 500 chars only
                         max_tokens=50,  # Smaller output
                         temperature=temperature,
-                        extra_kwargs={}
+                        extra_kwargs={},
                     )
                 return "Memory error. Please try with a shorter prompt."
             else:
@@ -468,19 +475,17 @@ class GenerationService:
         max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
         stream: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Union[str, AsyncIterator[str]]:
         """Chat completion with Qwen formatting"""
 
         # Use Qwen's chat template if available
-        if hasattr(self._tokenizer, 'apply_chat_template'):
+        if hasattr(self._tokenizer, "apply_chat_template"):
             try:
                 prompt = self._tokenizer.apply_chat_template(
-                    messages,
-                    tokenize=False,
-                    add_generation_prompt=True
+                    messages, tokenize=False, add_generation_prompt=True
                 )
-            except:
+            except Exception:
                 prompt = self._format_chat_messages(messages)
         else:
             prompt = self._format_chat_messages(messages)
@@ -508,9 +513,7 @@ class GenerationService:
     @property
     def performance_stats(self) -> Dict[str, Any]:
         """Performance statistics"""
-        avg_time = (
-            self._total_generation_time / max(self._generation_count, 1)
-        )
+        avg_time = self._total_generation_time / max(self._generation_count, 1)
 
         return {
             "model_name": self.config.model_name,
@@ -520,7 +523,7 @@ class GenerationService:
             "total_generations": self._generation_count,
             "average_generation_time_seconds": avg_time,
             "using_fp16": self._using_mps,
-            "is_ready": self.is_ready
+            "is_ready": self.is_ready,
         }
 
     async def warmup(self) -> Dict[str, Any]:
@@ -546,15 +549,12 @@ class GenerationService:
             return {
                 "warmup_successful": True,
                 "warmup_time_seconds": warmup_time,
-                **self.performance_stats
+                **self.performance_stats,
             }
 
         except Exception as e:
             logger.error(f"Warmup failed: {e}")
-            return {
-                "warmup_successful": False,
-                "error": str(e)
-            }
+            return {"warmup_successful": False, "error": str(e)}
 
     def cleanup_memory(self):
         """Clean up MPS memory"""
@@ -562,20 +562,20 @@ class GenerationService:
             try:
                 torch.mps.empty_cache()
                 torch.mps.synchronize()
-            except:
+            except Exception:
                 pass
         gc.collect()
 
     def __del__(self):
         """Cleanup on deletion"""
-        if hasattr(self, '_thread_pool'):
+        if hasattr(self, "_thread_pool"):
             self._thread_pool.shutdown(wait=False)
 
         self.cleanup_memory()
 
-        if hasattr(self, '_model'):
+        if hasattr(self, "_model"):
             del self._model
-        if hasattr(self, '_tokenizer'):
+        if hasattr(self, "_tokenizer"):
             del self._tokenizer
 
 

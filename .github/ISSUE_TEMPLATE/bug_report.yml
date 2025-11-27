@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible bug in MultiDB-Chatbot
+title: "[BUG] "
+labels: ["bug"]
+assignees: ["asq-sheriff"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What went wrong? Provide a clear description.
+      placeholder: "The chatbot crashes when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: List steps to reproduce the issue.
+      placeholder: |
+        1. Run `python main.py`
+        2. Ask "Hello"
+        3. Observe error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: "The chatbot should respond with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, DBs used
+      placeholder: "macOS 14, Python 3.13, MongoDB Atlas"
+

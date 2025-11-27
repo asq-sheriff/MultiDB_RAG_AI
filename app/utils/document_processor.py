@@ -3,27 +3,26 @@
 import asyncio
 import logging
 import mimetypes
-import os
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-import tempfile
-import shutil
+from typing import List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
 # Enhanced file format support with better error handling
 try:
     import PyPDF2
+
     PDF_PYPDF2_SUPPORT = True
 except ImportError:
     PDF_PYPDF2_SUPPORT = False
 
 try:
     import fitz  # PyMuPDF
+
     PDF_PYMUPDF_SUPPORT = True
 except ImportError:
     PDF_PYMUPDF_SUPPORT = False
@@ -32,12 +31,14 @@ PDF_SUPPORT = PDF_PYPDF2_SUPPORT or PDF_PYMUPDF_SUPPORT
 
 try:
     import docx2txt
+
     DOCX2TXT_SUPPORT = True
 except ImportError:
     DOCX2TXT_SUPPORT = False
 
 try:
     import mammoth
+
     MAMMOTH_SUPPORT = True
 except ImportError:
     MAMMOTH_SUPPORT = False
@@ -46,12 +47,14 @@ DOCX_SUPPORT = DOCX2TXT_SUPPORT or MAMMOTH_SUPPORT
 
 try:
     import pandas as pd
+
     CSV_SUPPORT = True
 except ImportError:
     CSV_SUPPORT = False
 
 try:
     from bs4 import BeautifulSoup
+
     HTML_SUPPORT = True
 except ImportError:
     HTML_SUPPORT = False
@@ -62,6 +65,7 @@ pass
 @dataclass
 class DocumentMetadata:
     """Enhanced document metadata with comprehensive information"""
+
     file_path: str
     title: str
     file_type: str
@@ -83,6 +87,7 @@ class DocumentMetadata:
 @dataclass
 class DocumentChunk:
     """Enhanced document chunk with metadata"""
+
     chunk_id: str
     content: str
     chunk_index: int
@@ -97,8 +102,11 @@ class DocumentChunk:
 @dataclass
 class ProcessingConfig:
     """Configuration for document processing"""
+
     # File format support - dynamically determined
-    supported_extensions: List[str] = field(default_factory=lambda: _get_supported_extensions())
+    supported_extensions: List[str] = field(
+        default_factory=lambda: _get_supported_extensions()
+    )
 
     # Chunking configuration - optimized for sentence-transformers/all-mpnet-base-v2
     chunk_size: int = 1500
@@ -123,16 +131,16 @@ class ProcessingConfig:
 
 def _get_supported_extensions() -> List[str]:
     """Dynamically determine supported file extensions based on available libraries"""
-    extensions = ['.txt', '.md', '.rst', '.json']
+    extensions = [".txt", ".md", ".rst", ".json"]
 
     if PDF_SUPPORT:
-        extensions.append('.pdf')
+        extensions.append(".pdf")
     if DOCX_SUPPORT:
-        extensions.extend(['.docx', '.doc'])
+        extensions.extend([".docx", ".doc"])
     if CSV_SUPPORT:
-        extensions.append('.csv')
+        extensions.append(".csv")
     if HTML_SUPPORT:
-        extensions.extend(['.html', '.htm'])
+        extensions.extend([".html", ".htm"])
 
     return extensions
 
@@ -152,7 +160,9 @@ class EnhancedDocumentProcessor:
         else:
             self.executor = None
 
-    async def process_directory(self, directory: Union[str, Path]) -> List[DocumentChunk]:
+    async def process_directory(
+        self, directory: Union[str, Path]
+    ) -> List[DocumentChunk]:
         """Process all supported files in a directory with parallel processing"""
         directory = Path(directory)
         if not directory.exists():
@@ -183,7 +193,9 @@ class EnhancedDocumentProcessor:
                     processed_count += 1
 
                     if processed_count % 5 == 0:
-                        logger.info(f"📊 Processed {processed_count}/{len(files)} files")
+                        logger.info(
+                            f"📊 Processed {processed_count}/{len(files)} files"
+                        )
 
                 except Exception as e:
                     logger.error(f"❌ File processing failed: {e}")
@@ -198,21 +210,27 @@ class EnhancedDocumentProcessor:
                     processed_count += 1
 
                     if processed_count % 5 == 0:
-                        logger.info(f"📊 Processed {processed_count}/{len(files)} files")
+                        logger.info(
+                            f"📊 Processed {processed_count}/{len(files)} files"
+                        )
 
                 except Exception as e:
                     logger.error(f"❌ Failed to process {file_path}: {e}")
                     if not self.config.skip_corrupted_files:
                         raise
 
-        logger.info(f"✅ Processing complete: {len(all_chunks)} chunks from {processed_count} files")
+        logger.info(
+            f"✅ Processing complete: {len(all_chunks)} chunks from {processed_count} files"
+        )
         return all_chunks
 
     async def _process_file_async(self, file_path: Path) -> List[DocumentChunk]:
         """Process a single file asynchronously"""
         if self.executor:
             loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(self.executor, self._process_file_sync, file_path)
+            return await loop.run_in_executor(
+                self.executor, self._process_file_sync, file_path
+            )
         else:
             return self._process_file_sync(file_path)
 
@@ -222,7 +240,9 @@ class EnhancedDocumentProcessor:
             # Check file size
             file_size = file_path.stat().st_size
             if file_size > self.config.max_file_size_mb * 1024 * 1024:
-                logger.warning(f"⚠️ Skipping large file: {file_path} ({file_size / 1024 / 1024:.1f}MB)")
+                logger.warning(
+                    f"⚠️ Skipping large file: {file_path} ({file_size / 1024 / 1024:.1f}MB)"
+                )
                 return []
 
             # Extract content and metadata
@@ -257,7 +277,9 @@ class EnhancedDocumentProcessor:
 
         return sorted(files)
 
-    def _extract_content_and_metadata(self, file_path: Path) -> Tuple[str, DocumentMetadata]:
+    def _extract_content_and_metadata(
+        self, file_path: Path
+    ) -> Tuple[str, DocumentMetadata]:
         """Extract content and metadata from file based on type"""
         file_extension = file_path.suffix.lower()
         mime_type, _ = mimetypes.guess_type(str(file_path))
@@ -267,28 +289,28 @@ class EnhancedDocumentProcessor:
         metadata = DocumentMetadata(
             file_path=str(file_path),
             title=file_path.stem,
-            file_type=file_extension[1:] if file_extension else 'unknown',
+            file_type=file_extension[1:] if file_extension else "unknown",
             file_size=stat.st_size,
-            mime_type=mime_type or 'unknown',
-            encoding='utf-8',
-            modification_date=datetime.fromtimestamp(stat.st_mtime)
+            mime_type=mime_type or "unknown",
+            encoding="utf-8",
+            modification_date=datetime.fromtimestamp(stat.st_mtime),
         )
 
         # Extract content based on file type
         content = ""
 
         try:
-            if file_extension in ['.txt', '.md', '.rst']:
+            if file_extension in [".txt", ".md", ".rst"]:
                 content = self._extract_text_content(file_path, metadata)
-            elif file_extension == '.pdf' and PDF_SUPPORT:
+            elif file_extension == ".pdf" and PDF_SUPPORT:
                 content = self._extract_pdf_content(file_path, metadata)
-            elif file_extension in ['.docx', '.doc'] and DOCX_SUPPORT:
+            elif file_extension in [".docx", ".doc"] and DOCX_SUPPORT:
                 content = self._extract_docx_content(file_path, metadata)
-            elif file_extension == '.csv' and CSV_SUPPORT:
+            elif file_extension == ".csv" and CSV_SUPPORT:
                 content = self._extract_csv_content(file_path, metadata)
-            elif file_extension in ['.json']:
+            elif file_extension in [".json"]:
                 content = self._extract_json_content(file_path, metadata)
-            elif file_extension in ['.html', '.htm']:
+            elif file_extension in [".html", ".htm"]:
                 content = self._extract_html_content(file_path, metadata)
             else:
                 logger.warning(f"⚠️ Unsupported file type: {file_extension}")
@@ -307,23 +329,23 @@ class EnhancedDocumentProcessor:
 
     def _extract_text_content(self, file_path: Path, metadata: DocumentMetadata) -> str:
         """Extract content from text files with encoding detection"""
-        encodings = ['utf-8', 'utf-16', 'latin-1', 'cp1252']
+        encodings = ["utf-8", "utf-16", "latin-1", "cp1252"]
 
         for encoding in encodings:
             try:
-                with open(file_path, 'r', encoding=encoding) as f:
+                with open(file_path, "r", encoding=encoding) as f:
                     content = f.read()
                 metadata.encoding = encoding
-                metadata.extraction_method = 'text_direct'
+                metadata.extraction_method = "text_direct"
                 return content
             except UnicodeDecodeError:
                 continue
 
         # If all encodings fail, read as binary and decode with errors
-        with open(file_path, 'rb') as f:
-            content = f.read().decode('utf-8', errors='ignore')
-        metadata.encoding = 'utf-8_with_errors'
-        metadata.extraction_method = 'text_fallback'
+        with open(file_path, "rb") as f:
+            content = f.read().decode("utf-8", errors="ignore")
+        metadata.encoding = "utf-8_with_errors"
+        metadata.extraction_method = "text_fallback"
         return content
 
     def _extract_pdf_content(self, file_path: Path, metadata: DocumentMetadata) -> str:
@@ -343,7 +365,7 @@ class EnhancedDocumentProcessor:
                         content_parts.append(text)
 
                 doc.close()
-                metadata.extraction_method = 'pymupdf'
+                metadata.extraction_method = "pymupdf"
 
         except Exception as e:
             logger.warning(f"PyMuPDF extraction failed, trying PyPDF2: {e}")
@@ -351,7 +373,7 @@ class EnhancedDocumentProcessor:
             # Fallback to PyPDF2
             if PDF_PYPDF2_SUPPORT:
                 try:
-                    with open(file_path, 'rb') as f:
+                    with open(file_path, "rb") as f:
                         reader = PyPDF2.PdfReader(f)
                         metadata.page_count = len(reader.pages)
 
@@ -360,7 +382,7 @@ class EnhancedDocumentProcessor:
                             if text.strip():
                                 content_parts.append(text)
 
-                    metadata.extraction_method = 'pypdf2'
+                    metadata.extraction_method = "pypdf2"
 
                 except Exception as e2:
                     metadata.processing_errors.append(f"PDF extraction failed: {e2}")
@@ -369,17 +391,17 @@ class EnhancedDocumentProcessor:
                 metadata.processing_errors.append(f"No PDF library available: {e}")
                 return ""
 
-        return '\n\n'.join(content_parts)
+        return "\n\n".join(content_parts)
 
     def _extract_docx_content(self, file_path: Path, metadata: DocumentMetadata) -> str:
         """Extract content from DOCX files"""
         try:
             # Try mammoth for better formatting preservation
             if MAMMOTH_SUPPORT:
-                with open(file_path, 'rb') as f:
+                with open(file_path, "rb") as f:
                     result = mammoth.extract_raw_text(f)
                     content = result.value
-                    metadata.extraction_method = 'mammoth'
+                    metadata.extraction_method = "mammoth"
                     return content
 
         except Exception as e:
@@ -389,7 +411,7 @@ class EnhancedDocumentProcessor:
         if DOCX2TXT_SUPPORT:
             try:
                 content = docx2txt.process(str(file_path))
-                metadata.extraction_method = 'docx2txt'
+                metadata.extraction_method = "docx2txt"
                 return content
             except Exception as e2:
                 metadata.processing_errors.append(f"DOCX extraction failed: {e2}")
@@ -422,8 +444,8 @@ class EnhancedDocumentProcessor:
             if len(df) > sample_size:
                 content_parts.append(f"... and {len(df) - sample_size} more rows")
 
-            metadata.extraction_method = 'pandas_csv'
-            return '\n'.join(content_parts)
+            metadata.extraction_method = "pandas_csv"
+            return "\n".join(content_parts)
 
         except Exception as e:
             metadata.processing_errors.append(f"CSV extraction failed: {e}")
@@ -434,7 +456,7 @@ class EnhancedDocumentProcessor:
         try:
             import json
 
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             # Convert JSON to structured text
@@ -463,8 +485,8 @@ class EnhancedDocumentProcessor:
             content_lines = [f"JSON Data from {file_path.name}"]
             content_lines.extend(json_to_text(data))
 
-            metadata.extraction_method = 'json_structured'
-            return '\n'.join(content_lines)
+            metadata.extraction_method = "json_structured"
+            return "\n".join(content_lines)
 
         except Exception as e:
             metadata.processing_errors.append(f"JSON extraction failed: {e}")
@@ -474,10 +496,10 @@ class EnhancedDocumentProcessor:
         """Extract content from HTML files"""
         try:
             if HTML_SUPPORT:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     html_content = f.read()
 
-                soup = BeautifulSoup(html_content, 'html.parser')
+                soup = BeautifulSoup(html_content, "html.parser")
 
                 # Remove script and style elements
                 for script in soup(["script", "style"]):
@@ -488,28 +510,33 @@ class EnhancedDocumentProcessor:
 
                 # Clean up whitespace
                 lines = (line.strip() for line in text.splitlines())
-                chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
-                content = ' '.join(chunk for chunk in chunks if chunk)
+                chunks = (
+                    phrase.strip() for line in lines for phrase in line.split("  ")
+                )
+                content = " ".join(chunk for chunk in chunks if chunk)
 
-                metadata.extraction_method = 'beautifulsoup'
+                metadata.extraction_method = "beautifulsoup"
                 return content
             else:
                 # Fallback to simple HTML tag removal
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 import re
-                content = re.sub(r'<[^>]+>', '', content)
-                content = re.sub(r'\s+', ' ', content).strip()
 
-                metadata.extraction_method = 'regex_html'
+                content = re.sub(r"<[^>]+>", "", content)
+                content = re.sub(r"\s+", " ", content).strip()
+
+                metadata.extraction_method = "regex_html"
                 return content
 
         except Exception as e:
             metadata.processing_errors.append(f"HTML extraction failed: {e}")
             return ""
 
-    def _create_enhanced_chunks(self, content: str, metadata: DocumentMetadata) -> List[DocumentChunk]:
+    def _create_enhanced_chunks(
+        self, content: str, metadata: DocumentMetadata
+    ) -> List[DocumentChunk]:
         """Create enhanced chunks with intelligent boundaries and metadata"""
         if not content or not content.strip():
             return []
@@ -526,21 +553,34 @@ class EnhancedDocumentProcessor:
 
         for sentence in sentences:
             # Check if adding this sentence would exceed chunk size
-            if len(current_chunk) + len(sentence) + 1 > self.config.chunk_size and current_chunk:
+            if (
+                len(current_chunk) + len(sentence) + 1 > self.config.chunk_size
+                and current_chunk
+            ):
                 # Create chunk
                 chunk = self._create_chunk(
                     current_chunk.strip(),
                     chunk_index,
                     current_start,
                     current_start + len(current_chunk),
-                    metadata
+                    metadata,
                 )
                 chunks.append(chunk)
 
                 # Start new chunk with overlap
-                overlap_text = self._get_overlap_text(current_chunk, self.config.chunk_overlap)
-                current_chunk = overlap_text + " " + sentence if overlap_text else sentence
-                current_start = current_start + len(current_chunk) - len(overlap_text) - len(sentence) - 1
+                overlap_text = self._get_overlap_text(
+                    current_chunk, self.config.chunk_overlap
+                )
+                current_chunk = (
+                    overlap_text + " " + sentence if overlap_text else sentence
+                )
+                current_start = (
+                    current_start
+                    + len(current_chunk)
+                    - len(overlap_text)
+                    - len(sentence)
+                    - 1
+                )
                 chunk_index += 1
             else:
                 # Add sentence to current chunk
@@ -556,12 +596,16 @@ class EnhancedDocumentProcessor:
                 chunk_index,
                 current_start,
                 current_start + len(current_chunk),
-                metadata
+                metadata,
             )
             chunks.append(chunk)
 
         # Filter out chunks that are too small
-        chunks = [chunk for chunk in chunks if len(chunk.content) >= self.config.min_chunk_size]
+        chunks = [
+            chunk
+            for chunk in chunks
+            if len(chunk.content) >= self.config.min_chunk_size
+        ]
 
         return chunks
 
@@ -570,7 +614,7 @@ class EnhancedDocumentProcessor:
         import re
 
         # Simple sentence splitting with multiple delimiters
-        sentences = re.split(r'[.!?]+\s+', text)
+        sentences = re.split(r"[.!?]+\s+", text)
 
         # Clean and filter sentences
         clean_sentences = []
@@ -588,15 +632,21 @@ class EnhancedDocumentProcessor:
 
         # Try to end at a word boundary
         overlap_text = text[-overlap_size:]
-        space_index = overlap_text.find(' ')
+        space_index = overlap_text.find(" ")
 
         if space_index > 0:
             return overlap_text[space_index:].strip()
 
         return overlap_text
 
-    def _create_chunk(self, content: str, chunk_index: int, start_char: int, end_char: int,
-                      metadata: DocumentMetadata) -> DocumentChunk:
+    def _create_chunk(
+        self,
+        content: str,
+        chunk_index: int,
+        start_char: int,
+        end_char: int,
+        metadata: DocumentMetadata,
+    ) -> DocumentChunk:
         """Create a DocumentChunk with enhanced metadata"""
 
         # Generate chunk ID
@@ -614,7 +664,7 @@ class EnhancedDocumentProcessor:
             metadata=metadata,
             embedding_text=embedding_text,
             chunk_type="content",
-            confidence=1.0
+            confidence=1.0,
         )
 
     def cleanup(self):
@@ -623,7 +673,9 @@ class EnhancedDocumentProcessor:
             self.executor.shutdown(wait=True)
 
 
-async def process_documents_for_seeding(docs_path: str, config: ProcessingConfig = None) -> List[DocumentChunk]:
+async def process_documents_for_seeding(
+    docs_path: str, config: ProcessingConfig = None
+) -> List[DocumentChunk]:
     """Process documents for seeding pipeline integration."""
     processor = EnhancedDocumentProcessor(config)
 

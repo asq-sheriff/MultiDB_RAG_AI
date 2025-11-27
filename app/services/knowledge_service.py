@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-import gc
 import logging
 import math
 import os
@@ -17,11 +15,14 @@ from typing import Any, Dict, List, Optional, Tuple, Callable, Awaitable, Iterab
 # FIXED: Import the getter function instead of the global variable
 try:
     from app.database.mongo_connection import get_mongo_manager
+
     ENHANCED_MONGO_AVAILABLE = True
 except ImportError:
     ENHANCED_MONGO_AVAILABLE = False
+
     def get_mongo_manager():
         raise RuntimeError("MongoDB manager not available")
+
 
 from motor.motor_asyncio import AsyncIOMotorCollection
 from bson import ObjectId
@@ -29,6 +30,7 @@ from bson import ObjectId
 # Optional acceleration
 try:
     import numpy as _np
+
     _HAS_NUMPY = True
 except ImportError:
     _HAS_NUMPY = False
@@ -41,13 +43,18 @@ _SYNTHETIC_DIM = int(os.getenv("RAG_SYNTHETIC_DIM", "32"))
 TelemetryFn = Callable[[str, Dict[str, Any]], None]
 AsyncQueryEmbedder = Callable[[str], Awaitable[List[float]]]
 
+
 @dataclass
 class SearchConfig:
     """Enhanced search configuration with fallback mechanisms"""
 
     # Fallback configuration
-    enable_exact_search_fallback: bool = os.getenv("ENABLE_EXACT_SEARCH_FALLBACK", "true") == "true"
-    enable_semantic_search_fallback: bool = os.getenv("ENABLE_SEMANTIC_SEARCH_FALLBACK", "true") == "true"
+    enable_exact_search_fallback: bool = (
+        os.getenv("ENABLE_EXACT_SEARCH_FALLBACK", "true") == "true"
+    )
+    enable_semantic_search_fallback: bool = (
+        os.getenv("ENABLE_SEMANTIC_SEARCH_FALLBACK", "true") == "true"
+    )
 
     # Quality thresholds
     min_exact_results: int = int(os.getenv("MIN_EXACT_RESULTS", "1"))
@@ -55,7 +62,9 @@ class SearchConfig:
 
     # Performance tuning
     candidate_multiplier_default: int = int(os.getenv("CANDIDATE_MULTIPLIER", "8"))
-    candidate_multiplier_fallback: int = int(os.getenv("CANDIDATE_MULTIPLIER_FALLBACK", "12"))
+    candidate_multiplier_fallback: int = int(
+        os.getenv("CANDIDATE_MULTIPLIER_FALLBACK", "12")
+    )
     max_fallback_attempts: int = int(os.getenv("MAX_FALLBACK_ATTEMPTS", "2"))
 
     # RAG optimization
@@ -63,13 +72,14 @@ class SearchConfig:
     rag_max_snippets: int = int(os.getenv("RAG_MAX_SNIPPETS", "5"))
     rag_diversity_threshold: float = float(os.getenv("RAG_DIVERSITY_THRESHOLD", "0.85"))
 
+
 def _cosine_similarity(a: Iterable[float], b: Iterable[float]) -> float:
     """Cosine similarity calculation with NumPy acceleration"""
     if _HAS_NUMPY:
         try:
             va = _np.asarray(a, dtype=_np.float32)
             vb = _np.asarray(b, dtype=_np.float32)
-            denom = (_np.linalg.norm(va) * _np.linalg.norm(vb))
+            denom = _np.linalg.norm(va) * _np.linalg.norm(vb)
             if denom == 0:
                 return 0.0
             return float(_np.dot(va, vb) / denom)
@@ -84,8 +94,10 @@ def _cosine_similarity(a: Iterable[float], b: Iterable[float]) -> float:
         return 0.0
     return dot / (norm_a * norm_b)
 
+
 # Alias for backward compatibility
 _cosine = _cosine_similarity
+
 
 def _classify_query(query: str) -> str:
     """Enhanced query classification with improved heuristics"""
@@ -109,7 +121,10 @@ def _classify_query(query: str) -> str:
     # Semantic search indicators
     semantic_indicators = [
         len(tokens) > 8,  # Long descriptive queries
-        any(word in q for word in ["how", "what", "why", "explain", "describe", "tell me"]),
+        any(
+            word in q
+            for word in ["how", "what", "why", "explain", "describe", "tell me"]
+        ),
         any(word in q for word in ["similar", "like", "related", "about", "regarding"]),
     ]
 
@@ -118,8 +133,10 @@ def _classify_query(query: str) -> str:
 
     return "hybrid"
 
+
 # Backward compatibility alias
 classify_query = _classify_query
+
 
 def _assess_search_quality(results: List[Dict[str, Any]], query: str) -> Dict[str, Any]:
     """Assess search result quality with enhanced metrics"""
@@ -127,14 +144,18 @@ def _assess_search_quality(results: List[Dict[str, Any]], query: str) -> Dict[st
         return {
             "quality_assessment": "no_results",
             "confidence": 0.0,
-            "recommendations": ["try_broader_terms", "check_spelling"]
+            "recommendations": ["try_broader_terms", "check_spelling"],
         }
 
     # Calculate quality metrics
     scores = [r.get("score", 0.0) for r in results]
     avg_score = sum(scores) / len(scores)
     max_score = max(scores) if scores else 0.0
-    score_variance = sum((s - avg_score) ** 2 for s in scores) / len(scores) if len(scores) > 1 else 0.0
+    score_variance = (
+        sum((s - avg_score) ** 2 for s in scores) / len(scores)
+        if len(scores) > 1
+        else 0.0
+    )
 
     # Diversity assessment
     unique_sources = len(set(r.get("source", "") for r in results))
@@ -142,7 +163,9 @@ def _assess_search_quality(results: List[Dict[str, Any]], query: str) -> Dict[st
 
     # Content quality assessment
     content_lengths = [len(r.get("content", r.get("answer", ""))) for r in results]
-    avg_content_length = sum(content_lengths) / len(content_lengths) if content_lengths else 0
+    avg_content_length = (
+        sum(content_lengths) / len(content_lengths) if content_lengths else 0
+    )
 
     # Overall quality assessment
     if max_score > 0.9 and avg_score > 0.7:
@@ -176,8 +199,9 @@ def _assess_search_quality(results: List[Dict[str, Any]], query: str) -> Dict[st
         "unique_sources": unique_sources,
         "unique_types": unique_types,
         "avg_content_length": avg_content_length,
-        "recommendations": recommendations
+        "recommendations": recommendations,
     }
+
 
 def _synthetic_embedding(text: str, dim: int = 32) -> List[float]:
     """Deterministic synthetic embedding for testing (backward compatibility)"""
@@ -186,9 +210,11 @@ def _synthetic_embedding(text: str, dim: int = 32) -> List[float]:
     norm = math.sqrt(sum(v * v for v in vec)) or 1.0
     return [v / norm for v in vec]
 
+
 def _now_iso() -> str:
     """ISO timestamp helper"""
     return datetime.utcnow().isoformat() + "Z"
+
 
 def _normalize_id(doc: Dict[str, Any]) -> Dict[str, Any]:
     """Normalize MongoDB ObjectId to string"""
@@ -197,7 +223,10 @@ def _normalize_id(doc: Dict[str, Any]) -> Dict[str, Any]:
         d["_id"] = str(d["_id"])
     return d
 
-def _apply_filters(base_query: Dict[str, Any], filters: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+
+def _apply_filters(
+    base_query: Dict[str, Any], filters: Optional[Dict[str, Any]]
+) -> Dict[str, Any]:
     """Apply additional filters to MongoDB query"""
     if not filters:
         return base_query
@@ -205,16 +234,20 @@ def _apply_filters(base_query: Dict[str, Any], filters: Optional[Dict[str, Any]]
         base_query[k] = v
     return base_query
 
+
 # -----------------------------------------------------------------------------
 # Unified Knowledge Service
 # -----------------------------------------------------------------------------
+
 
 class KnowledgeService:
     """Unified Knowledge Service with Atlas Vector Search and backward compatibility."""
 
     def __init__(
         self,
-        scylla_exact_search_fn: Optional[Callable[[str, int], Awaitable[List[Dict[str, Any]]]]] = None,
+        scylla_exact_search_fn: Optional[
+            Callable[[str, int], Awaitable[List[Dict[str, Any]]]]
+        ] = None,
         telemetry_cb: Optional[TelemetryFn] = None,
         query_embedder: Optional[AsyncQueryEmbedder] = None,
         search_config: Optional[SearchConfig] = None,
@@ -243,7 +276,7 @@ class KnowledgeService:
 
         # FIXED: Check vector search availability at runtime, not init time
         # We'll check this when we actually need it
-        logger.info(f"  Atlas Vector Search available: Will check at runtime")
+        logger.info("  Atlas Vector Search available: Will check at runtime")
 
     def _get_mongo_manager(self):
         """Get the MongoDB manager instance - FIXED to use the getter function"""
@@ -286,15 +319,20 @@ class KnowledgeService:
         elif route == "auto":
             decided_route = _classify_query(query)
 
-        logger.debug(f"Search router: query='{query}', route={route}->{decided_route}, filters={filters}")
+        logger.debug(
+            f"Search router: query='{query}', route={route}->{decided_route}, filters={filters}"
+        )
 
-        self.telemetry("unified_search_begin", {
-            "route": route,
-            "decided_route": decided_route,
-            "query_length": len(query),
-            "top_k": top_k,
-            "enhanced_features": ENHANCED_MONGO_AVAILABLE
-        })
+        self.telemetry(
+            "unified_search_begin",
+            {
+                "route": route,
+                "decided_route": decided_route,
+                "query_length": len(query),
+                "top_k": top_k,
+                "enhanced_features": ENHANCED_MONGO_AVAILABLE,
+            },
+        )
 
         results: List[Dict[str, Any]] = []
         fallback_applied = False
@@ -303,21 +341,29 @@ class KnowledgeService:
             "start_time": start_time,
             "decided_route": decided_route,
             "atlas_used": False,
-            "fallback_attempts": 0
+            "fallback_attempts": 0,
         }
 
         try:
             # Primary search execution
             if decided_route == "exact":
-                results = await self._execute_exact_search(query, top_k, search_kb, filters)
+                results = await self._execute_exact_search(
+                    query, top_k, search_kb, filters
+                )
 
                 # Apply exact search fallback if enabled and results are poor
-                if (self.config.enable_exact_search_fallback and
-                    len(results) < self.config.min_exact_results):
-
+                if (
+                    self.config.enable_exact_search_fallback
+                    and len(results) < self.config.min_exact_results
+                ):
                     logger.info(f"Applying exact search fallback for query: {query}")
                     fallback_results = await self._execute_semantic_search(
-                        query, top_k, search_docs, search_kb, candidate_multiplier, filters
+                        query,
+                        top_k,
+                        search_docs,
+                        search_kb,
+                        candidate_multiplier,
+                        filters,
                     )
                     results.extend(fallback_results)
                     fallback_applied = True
@@ -329,11 +375,14 @@ class KnowledgeService:
                 )
 
                 # Apply semantic search fallback if enabled and results are poor
-                if (self.config.enable_semantic_search_fallback and
-                    self._should_apply_semantic_fallback(results)):
-
+                if (
+                    self.config.enable_semantic_search_fallback
+                    and self._should_apply_semantic_fallback(results)
+                ):
                     logger.info(f"Applying semantic search fallback for query: {query}")
-                    fallback_results = await self._execute_exact_search(query, top_k, search_kb, filters)
+                    fallback_results = await self._execute_exact_search(
+                        query, top_k, search_kb, filters
+                    )
                     results.extend(fallback_results)
                     fallback_applied = True
                     meta["fallback_attempts"] += 1
@@ -358,20 +407,25 @@ class KnowledgeService:
             search_quality = {"quality_assessment": "error", "confidence": 0.0}
 
         # Final metadata
-        meta.update({
-            "end": _now_iso(),
-            "end_time": time.time(),
-            "total_time_seconds": time.time() - start_time,
-            "result_count": len(results)
-        })
+        meta.update(
+            {
+                "end": _now_iso(),
+                "end_time": time.time(),
+                "total_time_seconds": time.time() - start_time,
+                "result_count": len(results),
+            }
+        )
 
-        self.telemetry("unified_search_complete", {
-            "route": f"{route}->{decided_route}",
-            "result_count": len(results),
-            "fallback_applied": fallback_applied,
-            "search_quality": search_quality.get("quality_assessment"),
-            "total_time": meta["total_time_seconds"]
-        })
+        self.telemetry(
+            "unified_search_complete",
+            {
+                "route": f"{route}->{decided_route}",
+                "result_count": len(results),
+                "fallback_applied": fallback_applied,
+                "search_quality": search_quality.get("quality_assessment"),
+                "total_time": meta["total_time_seconds"],
+            },
+        )
 
         return {
             "route": f"{route}->{decided_route}",
@@ -379,7 +433,7 @@ class KnowledgeService:
             "results": results,
             "meta": meta,
             "search_quality": search_quality,
-            "fallback_applied": fallback_applied
+            "fallback_applied": fallback_applied,
         }
 
     # Enhanced search execution methods
@@ -388,7 +442,7 @@ class KnowledgeService:
         query: str,
         top_k: int,
         search_kb: bool,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Execute exact search via ScyllaDB or text search fallback"""
 
@@ -396,7 +450,9 @@ class KnowledgeService:
             try:
                 self.telemetry("search_begin", {"backend": "scylla", "route": "exact"})
                 results = await self.scylla_search(query, top_k)
-                self.telemetry("search_end", {"backend": "scylla", "count": len(results)})
+                self.telemetry(
+                    "search_end", {"backend": "scylla", "count": len(results)}
+                )
                 return results
             except Exception as e:
                 logger.warning(f"ScyllaDB exact search failed: {e}")
@@ -404,7 +460,9 @@ class KnowledgeService:
         # Fallback to MongoDB text search
         self.telemetry("search_begin", {"backend": "mongo.kv_text", "route": "exact"})
         results = await self.mongo_text_search_kv(query, top_k=top_k, filters=filters)
-        self.telemetry("search_end", {"backend": "mongo.kv_text", "count": len(results)})
+        self.telemetry(
+            "search_end", {"backend": "mongo.kv_text", "count": len(results)}
+        )
         return results
 
     async def _execute_semantic_search(
@@ -414,7 +472,7 @@ class KnowledgeService:
         search_docs: bool,
         search_kb: bool,
         candidate_multiplier: int,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Execute semantic search with Atlas Vector Search or hybrid fallback"""
 
@@ -439,36 +497,47 @@ class KnowledgeService:
                     results.extend(kb_results)
 
                 if results:
-                    return sorted(results, key=lambda r: r.get("score", 0.0), reverse=True)[:top_k]
+                    return sorted(
+                        results, key=lambda r: r.get("score", 0.0), reverse=True
+                    )[:top_k]
 
             except Exception as e:
-                logger.warning(f"Atlas Vector Search failed, falling back to hybrid: {e}")
+                logger.warning(
+                    f"Atlas Vector Search failed, falling back to hybrid: {e}"
+                )
 
         # Fallback to hybrid search (original implementation)
         if search_docs:
             self.telemetry("search_begin", {"backend": "mongo.emb.hybrid"})
             doc_results = await self.mongo_hybrid_search_embeddings(
-                query, top_k=top_k, filters=filters, candidate_multiplier=candidate_multiplier
+                query,
+                top_k=top_k,
+                filters=filters,
+                candidate_multiplier=candidate_multiplier,
             )
-            self.telemetry("search_end", {"backend": "mongo.emb.hybrid", "count": len(doc_results)})
+            self.telemetry(
+                "search_end", {"backend": "mongo.emb.hybrid", "count": len(doc_results)}
+            )
             results.extend(doc_results)
 
         if search_kb:
             self.telemetry("search_begin", {"backend": "mongo.kv.hybrid"})
             kb_results = await self.mongo_hybrid_search_kv(
-                query, top_k=top_k, filters=filters, candidate_multiplier=candidate_multiplier
+                query,
+                top_k=top_k,
+                filters=filters,
+                candidate_multiplier=candidate_multiplier,
             )
-            self.telemetry("search_end", {"backend": "mongo.kv.hybrid", "count": len(kb_results)})
+            self.telemetry(
+                "search_end", {"backend": "mongo.kv.hybrid", "count": len(kb_results)}
+            )
             results.extend(kb_results)
 
         return sorted(results, key=lambda r: r.get("score", 0.0), reverse=True)[:top_k]
 
     # Atlas Vector Search methods (enhanced features)
     async def _atlas_vector_search_embeddings(
-        self,
-        query: str,
-        top_k: int,
-        candidate_multiplier: int
+        self, query: str, top_k: int, candidate_multiplier: int
     ) -> List[Dict[str, Any]]:
         """Execute Atlas Vector Search on embeddings collection"""
 
@@ -489,7 +558,7 @@ class KnowledgeService:
                     "path": "embedding",  # FIXED: Added required path field
                     "queryVector": query_vector,
                     "numCandidates": min(top_k * candidate_multiplier, 1000),
-                    "limit": top_k
+                    "limit": top_k,
                 }
             },
             {
@@ -500,9 +569,9 @@ class KnowledgeService:
                     "chunk_index": 1,
                     "category": 1,
                     "tags": 1,
-                    "score": {"$meta": "vectorSearchScore"}
+                    "score": {"$meta": "vectorSearchScore"},
                 }
-            }
+            },
         ]
 
         cursor = collection.aggregate(pipeline)
@@ -510,27 +579,26 @@ class KnowledgeService:
 
         results = []
         for doc in docs:
-            results.append({
-                "type": "document",
-                "source": "atlas_vector_search",
-                "id": str(doc["_id"]),
-                "title": doc.get("title", ""),
-                "content": doc.get("content", ""),
-                "document_id": str(doc.get("document_id", "")),
-                "chunk_index": doc.get("chunk_index", 0),
-                "category": doc.get("category", ""),
-                "tags": doc.get("tags", []),
-                "score": float(doc.get("score", 0.0)),
-                "metric": "atlas_vector_score"
-            })
+            results.append(
+                {
+                    "type": "document",
+                    "source": "atlas_vector_search",
+                    "id": str(doc["_id"]),
+                    "title": doc.get("title", ""),
+                    "content": doc.get("content", ""),
+                    "document_id": str(doc.get("document_id", "")),
+                    "chunk_index": doc.get("chunk_index", 0),
+                    "category": doc.get("category", ""),
+                    "tags": doc.get("tags", []),
+                    "score": float(doc.get("score", 0.0)),
+                    "metric": "atlas_vector_score",
+                }
+            )
 
         return results
 
     async def _atlas_vector_search_knowledge_vectors(
-        self,
-        query: str,
-        top_k: int,
-        candidate_multiplier: int
+        self, query: str, top_k: int, candidate_multiplier: int
     ) -> List[Dict[str, Any]]:
         """Execute Atlas Vector Search on knowledge_vectors collection"""
 
@@ -551,7 +619,7 @@ class KnowledgeService:
                     "path": "embedding",  # FIXED: Added required path field
                     "queryVector": query_vector,
                     "numCandidates": min(top_k * candidate_multiplier, 1000),
-                    "limit": top_k
+                    "limit": top_k,
                 }
             },
             {
@@ -559,9 +627,9 @@ class KnowledgeService:
                     "question": 1,
                     "answer": 1,
                     "scylla_key": 1,
-                    "score": {"$meta": "vectorSearchScore"}
+                    "score": {"$meta": "vectorSearchScore"},
                 }
-            }
+            },
         ]
 
         cursor = collection.aggregate(pipeline)
@@ -569,16 +637,18 @@ class KnowledgeService:
 
         results = []
         for doc in docs:
-            results.append({
-                "type": "faq",
-                "source": "atlas_vector_search",
-                "id": str(doc["_id"]),
-                "scylla_key": doc.get("scylla_key", ""),
-                "question": doc.get("question", ""),
-                "answer": doc.get("answer", ""),
-                "score": float(doc.get("score", 0.0)),
-                "metric": "atlas_vector_score"
-            })
+            results.append(
+                {
+                    "type": "faq",
+                    "source": "atlas_vector_search",
+                    "id": str(doc["_id"]),
+                    "scylla_key": doc.get("scylla_key", ""),
+                    "question": doc.get("question", ""),
+                    "answer": doc.get("answer", ""),
+                    "score": float(doc.get("score", 0.0)),
+                    "metric": "atlas_vector_score",
+                }
+            )
 
         return results
 
@@ -619,7 +689,11 @@ class KnowledgeService:
                 "source": 1,
                 "score": {"$meta": "textScore"},
             }
-            cursor = coll.find(q, proj).sort([("score", {"$meta": "textScore"})]).limit(top_k)
+            cursor = (
+                coll.find(q, proj)
+                .sort([("score", {"$meta": "textScore"})])
+                .limit(top_k)
+            )
             docs = await cursor.to_list(length=top_k)
 
             if docs:
@@ -627,19 +701,23 @@ class KnowledgeService:
 
             for d in docs:
                 d = _normalize_id(d)
-                out.append({
-                    "type": "document",
-                    "source": "mongo.embeddings",
-                    "id": d["_id"],
-                    "title": d.get("title"),
-                    "content": d.get("content"),
-                    "document_id": str(d.get("document_id")) if d.get("document_id") else None,
-                    "chunk_index": d.get("chunk_index"),
-                    "category": d.get("category"),
-                    "tags": d.get("tags", []),
-                    "score": float(d.get("score", 0.0)),
-                    "metric": "textScore",
-                })
+                out.append(
+                    {
+                        "type": "document",
+                        "source": "mongo.embeddings",
+                        "id": d["_id"],
+                        "title": d.get("title"),
+                        "content": d.get("content"),
+                        "document_id": str(d.get("document_id"))
+                        if d.get("document_id")
+                        else None,
+                        "chunk_index": d.get("chunk_index"),
+                        "category": d.get("category"),
+                        "tags": d.get("tags", []),
+                        "score": float(d.get("score", 0.0)),
+                        "metric": "textScore",
+                    }
+                )
 
         except Exception as e:
             # If text search fails (e.g., no text index), fall back to regular query
@@ -659,10 +737,12 @@ class KnowledgeService:
                 for word in query_words:
                     # Escape special regex characters
                     escaped_word = re.escape(word)
-                    or_conditions.extend([
-                        {"content": {"$regex": escaped_word, "$options": "i"}},
-                        {"title": {"$regex": escaped_word, "$options": "i"}}
-                    ])
+                    or_conditions.extend(
+                        [
+                            {"content": {"$regex": escaped_word, "$options": "i"}},
+                            {"title": {"$regex": escaped_word, "$options": "i"}},
+                        ]
+                    )
 
                 if or_conditions:
                     fallback_query["$or"] = or_conditions
@@ -700,23 +780,29 @@ class KnowledgeService:
                     query_words = query_lower.split()
                     for word in query_words:
                         score += content.count(word) / max(len(content.split()), 1)
-                    score = score / max(len(query_words), 1)  # Normalize by number of query words
+                    score = score / max(
+                        len(query_words), 1
+                    )  # Normalize by number of query words
                 else:
                     score = 0.5  # Default score when no query
 
-                out.append({
-                    "type": "document",
-                    "source": "mongo.embeddings",
-                    "id": d["_id"],
-                    "title": d.get("title"),
-                    "content": d.get("content"),
-                    "document_id": str(d.get("document_id")) if d.get("document_id") else None,
-                    "chunk_index": d.get("chunk_index"),
-                    "category": d.get("category"),
-                    "tags": d.get("tags", []),
-                    "score": float(score),
-                    "metric": "regex_match",
-                })
+                out.append(
+                    {
+                        "type": "document",
+                        "source": "mongo.embeddings",
+                        "id": d["_id"],
+                        "title": d.get("title"),
+                        "content": d.get("content"),
+                        "document_id": str(d.get("document_id"))
+                        if d.get("document_id")
+                        else None,
+                        "chunk_index": d.get("chunk_index"),
+                        "category": d.get("category"),
+                        "tags": d.get("tags", []),
+                        "score": float(score),
+                        "metric": "regex_match",
+                    }
+                )
 
         return out
 
@@ -740,22 +826,26 @@ class KnowledgeService:
             "scylla_key": 1,
             "score": {"$meta": "textScore"},
         }
-        cursor = coll.find(q, proj).sort([("score", {"$meta": "textScore"})]).limit(top_k)
+        cursor = (
+            coll.find(q, proj).sort([("score", {"$meta": "textScore"})]).limit(top_k)
+        )
         docs = await cursor.to_list(length=top_k)
 
         out: List[Dict[str, Any]] = []
         for d in docs:
             d = _normalize_id(d)
-            out.append({
-                "type": "faq",
-                "source": "mongo.knowledge_vectors",
-                "id": d["_id"],
-                "scylla_key": d.get("scylla_key"),
-                "question": d.get("question"),
-                "answer": d.get("answer"),
-                "score": float(d.get("score", 0.0)),
-                "metric": "textScore",
-            })
+            out.append(
+                {
+                    "type": "faq",
+                    "source": "mongo.knowledge_vectors",
+                    "id": d["_id"],
+                    "scylla_key": d.get("scylla_key"),
+                    "question": d.get("question"),
+                    "answer": d.get("answer"),
+                    "score": float(d.get("score", 0.0)),
+                    "metric": "textScore",
+                }
+            )
         return out
 
     async def mongo_hybrid_search_embeddings(
@@ -788,16 +878,22 @@ class KnowledgeService:
 
         # If no text search results, try a broader approach
         if not candidates:
-            logger.info(f"No text search results for query '{query}', trying broader retrieval")
+            logger.info(
+                f"No text search results for query '{query}', trying broader retrieval"
+            )
             mongo_manager = self._get_mongo_manager()
             coll = mongo_manager.embeddings()
 
             # Get ANY documents that have embeddings
             simple_query = filters or {}
-            simple_query["embedding"] = {"$exists": True, "$ne": None, "$not": {"$size": 0}}
+            simple_query["embedding"] = {
+                "$exists": True,
+                "$ne": None,
+                "$not": {"$size": 0},
+            }
 
             # Also ensure content exists
-            simple_query["content"] = {"$exists": True, "$ne": None, "$ne": ""}
+            simple_query["content"] = {"$exists": True, "$nin": [None, ""]}
 
             # Log the query for debugging
             logger.info(f"Broader retrieval query: {simple_query}")
@@ -807,7 +903,9 @@ class KnowledgeService:
             cursor = coll.find(simple_query).limit(broader_limit)
             docs = await cursor.to_list(length=broader_limit)
 
-            logger.info(f"Broader retrieval found {len(docs)} documents with embeddings")
+            logger.info(
+                f"Broader retrieval found {len(docs)} documents with embeddings"
+            )
 
             candidates = []
             for d in docs:
@@ -829,23 +927,27 @@ class KnowledgeService:
 
                 # Only include documents that have some relevance
                 if has_match or len(candidates) < top_k:
-                    candidates.append({
-                        "type": "document",
-                        "source": "mongo.embeddings",
-                        "id": d["_id"],
-                        "title": d.get("title"),
-                        "content": d.get("content"),
-                        "document_id": str(d.get("document_id")) if d.get("document_id") else None,
-                        "chunk_index": d.get("chunk_index"),
-                        "category": d.get("category"),
-                        "tags": d.get("tags", []),
-                        "embedding": d.get("embedding"),
-                        "score": 0.0,
-                        "metric": "fallback",
-                    })
+                    candidates.append(
+                        {
+                            "type": "document",
+                            "source": "mongo.embeddings",
+                            "id": d["_id"],
+                            "title": d.get("title"),
+                            "content": d.get("content"),
+                            "document_id": str(d.get("document_id"))
+                            if d.get("document_id")
+                            else None,
+                            "chunk_index": d.get("chunk_index"),
+                            "category": d.get("category"),
+                            "tags": d.get("tags", []),
+                            "embedding": d.get("embedding"),
+                            "score": 0.0,
+                            "metric": "fallback",
+                        }
+                    )
 
             if not candidates:
-                logger.warning(f"No documents found even with broader retrieval")
+                logger.warning("No documents found even with broader retrieval")
                 return []
 
             logger.info(f"Using {len(candidates)} candidates for re-ranking")
@@ -865,7 +967,9 @@ class KnowledgeService:
 
             # Ensure embedding dimensions match
             if len(emb) != len(query_embedding):
-                logger.debug(f"Embedding dimension mismatch: {len(emb)} vs {len(query_embedding)}")
+                logger.debug(
+                    f"Embedding dimension mismatch: {len(emb)} vs {len(query_embedding)}"
+                )
                 continue
 
             cos = _cosine_similarity(query_embedding, emb)
@@ -912,7 +1016,12 @@ class KnowledgeService:
         }
 
         candidate_n = max(top_k * max(1, candidate_multiplier), top_k)
-        docs = await coll.find(q, proj).sort([("score", {"$meta": "textScore"})]).limit(candidate_n).to_list(length=candidate_n)
+        docs = (
+            await coll.find(q, proj)
+            .sort([("score", {"$meta": "textScore"})])
+            .limit(candidate_n)
+            .to_list(length=candidate_n)
+        )
         if not docs:
             return []
 
@@ -926,19 +1035,21 @@ class KnowledgeService:
             if not emb:
                 continue
             cos = _cosine_similarity(query_embedding, emb)
-            re_ranked.append((
-                cos,
-                {
-                    "type": "faq",
-                    "source": "mongo.knowledge_vectors",
-                    "id": d["_id"],
-                    "scylla_key": d.get("scylla_key"),
-                    "question": d.get("question"),
-                    "answer": d.get("answer"),
-                    "score": float(cos),
-                    "metric": "cosine",
-                },
-            ))
+            re_ranked.append(
+                (
+                    cos,
+                    {
+                        "type": "faq",
+                        "source": "mongo.knowledge_vectors",
+                        "id": d["_id"],
+                        "scylla_key": d.get("scylla_key"),
+                        "question": d.get("question"),
+                        "answer": d.get("answer"),
+                        "score": float(cos),
+                        "metric": "cosine",
+                    },
+                )
+            )
 
         re_ranked.sort(key=lambda x: x[0], reverse=True)
         return [it for _, it in re_ranked[:top_k]]
@@ -954,9 +1065,7 @@ class KnowledgeService:
         return avg_score < self.config.min_semantic_score
 
     def _deduplicate_and_rerank(
-        self,
-        results: List[Dict[str, Any]],
-        top_k: int
+        self, results: List[Dict[str, Any]], top_k: int
     ) -> List[Dict[str, Any]]:
         """Remove duplicates and re-rank results"""
         seen_ids = set()
@@ -994,7 +1103,9 @@ class KnowledgeService:
         # Custom hook provided?
         if self.query_embedder:
             vec = await self.query_embedder(query)
-            if not isinstance(vec, list) or not all(isinstance(x, (int, float)) for x in vec):
+            if not isinstance(vec, list) or not all(
+                isinstance(x, (int, float)) for x in vec
+            ):
                 raise TypeError("query_embedder must return List[float]")
             return [float(x) for x in vec]
 

@@ -1,6 +1,5 @@
 """Background task processing service for long-running operations."""
 
-import asyncio
 import time
 import logging
 import uuid
@@ -8,20 +7,22 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timezone
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, Future
-import threading
 
 from app.database.redis_models import NotificationModel, AnalyticsModel
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class TaskResult:
     """Result of a background task"""
+
     task_id: str
     success: bool
     result: Optional[Any] = None
     error: Optional[str] = None
     duration_seconds: float = 0.0
+
 
 class BackgroundTaskService:
     """Service for handling long-running background tasks."""
@@ -36,18 +37,15 @@ class BackgroundTaskService:
         # Track running tasks
         self._running_tasks: Dict[str, Future] = {}
 
-    def submit_data_analysis_task(self, user_id: str, data_description: str,
-                                  session_id: str) -> str:
+    def submit_data_analysis_task(
+        self, user_id: str, data_description: str, session_id: str
+    ) -> str:
         """Submit a data analysis task for background processing."""
         task_id = str(uuid.uuid4())
 
         # Submit task to thread pool
         future = self.executor.submit(
-            self._process_data_analysis,
-            task_id,
-            user_id,
-            data_description,
-            session_id
+            self._process_data_analysis, task_id, user_id, data_description, session_id
         )
 
         # Track the task
@@ -55,28 +53,28 @@ class BackgroundTaskService:
 
         # Record analytics
         self.analytics_model.increment_counter("background_tasks_submitted")
-        self.analytics_model.record_event("task_submitted", {
-            "task_id": task_id,
-            "task_type": "data_analysis",
-            "user_id": user_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        self.analytics_model.record_event(
+            "task_submitted",
+            {
+                "task_id": task_id,
+                "task_type": "data_analysis",
+                "user_id": user_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
         logger.info(f"📋 Submitted data analysis task {task_id} for user {user_id}")
         return task_id
 
-    def submit_research_task(self, user_id: str, research_topic: str,
-                             session_id: str) -> str:
+    def submit_research_task(
+        self, user_id: str, research_topic: str, session_id: str
+    ) -> str:
         """Submit a research task for background processing."""
         task_id = str(uuid.uuid4())
 
         # Submit task to thread pool
         future = self.executor.submit(
-            self._process_research_task,
-            task_id,
-            user_id,
-            research_topic,
-            session_id
+            self._process_research_task, task_id, user_id, research_topic, session_id
         )
 
         # Track the task
@@ -84,18 +82,22 @@ class BackgroundTaskService:
 
         # Record analytics
         self.analytics_model.increment_counter("background_tasks_submitted")
-        self.analytics_model.record_event("task_submitted", {
-            "task_id": task_id,
-            "task_type": "research",
-            "user_id": user_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        self.analytics_model.record_event(
+            "task_submitted",
+            {
+                "task_id": task_id,
+                "task_type": "research",
+                "user_id": user_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
         logger.info(f"🔍 Submitted research task {task_id} for user {user_id}")
         return task_id
 
-    def _process_data_analysis(self, task_id: str, user_id: str,
-                               data_description: str, session_id: str) -> TaskResult:
+    def _process_data_analysis(
+        self, task_id: str, user_id: str, data_description: str, session_id: str
+    ) -> TaskResult:
         """
         Process data analysis task (simulated long-running operation).
         Runs in background thread.
@@ -126,7 +128,7 @@ class BackgroundTaskService:
             steps = ["Loading data", "Preprocessing", "Analysis", "Generating report"]
             for i, step in enumerate(steps):
                 time.sleep(processing_time / len(steps))
-                logger.debug(f"Task {task_id}: {step} ({i+1}/{len(steps)})")
+                logger.debug(f"Task {task_id}: {step} ({i + 1}/{len(steps)})")
 
             # Generate mock analysis result
             analysis_result = {
@@ -135,10 +137,10 @@ class BackgroundTaskService:
                     "Data shows clear trends and patterns",
                     "Identified 3 key areas for improvement",
                     "Correlation strength: 0.85",
-                    "Recommended next steps: Further investigation needed"
+                    "Recommended next steps: Further investigation needed",
                 ],
                 "charts_generated": 2,
-                "recommendations": "Consider expanding dataset for deeper insights"
+                "recommendations": "Consider expanding dataset for deeper insights",
             }
 
             duration = time.time() - start_time
@@ -149,14 +151,14 @@ class BackgroundTaskService:
                 task_id=task_id,
                 task_type="Data Analysis",
                 result=analysis_result,
-                duration=duration
+                duration=duration,
             )
 
             return TaskResult(
                 task_id=task_id,
                 success=True,
                 result=analysis_result,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         except Exception as e:
@@ -169,22 +171,23 @@ class BackgroundTaskService:
                 task_id=task_id,
                 task_type="Data Analysis",
                 error=error_msg,
-                duration=duration
+                duration=duration,
             )
 
             return TaskResult(
                 task_id=task_id,
                 success=False,
                 error=error_msg,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         finally:
             # Clean up task tracking
             self._running_tasks.pop(task_id, None)
 
-    def _process_research_task(self, task_id: str, user_id: str,
-                               research_topic: str, session_id: str) -> TaskResult:
+    def _process_research_task(
+        self, task_id: str, user_id: str, research_topic: str, session_id: str
+    ) -> TaskResult:
         """
         Process research task (simulated long-running operation).
         Runs in background thread.
@@ -192,19 +195,21 @@ class BackgroundTaskService:
         start_time = time.time()
 
         try:
-            logger.info(f"🔍 Starting research task {task_id} on topic: {research_topic}")
+            logger.info(
+                f"🔍 Starting research task {task_id} on topic: {research_topic}"
+            )
 
             # Simulate research steps - SHORTENED FOR TESTING
             steps = [
                 "Searching academic databases",
                 "Analyzing sources",
                 "Cross-referencing information",
-                "Compiling findings"
+                "Compiling findings",
             ]
 
             for i, step in enumerate(steps):
                 time.sleep(0.25)  # Was 2 seconds, now 0.25 seconds
-                logger.debug(f"Task {task_id}: {step} ({i+1}/{len(steps)})")
+                logger.debug(f"Task {task_id}: {step} ({i + 1}/{len(steps)})")
 
             # Generate mock research result
             research_result = {
@@ -214,10 +219,10 @@ class BackgroundTaskService:
                 "key_findings": [
                     f"Latest developments in {research_topic}",
                     "Industry trends and future outlook",
-                    "Best practices and recommendations"
+                    "Best practices and recommendations",
                 ],
                 "research_date": datetime.now(timezone.utc).isoformat(),
-                "confidence_level": "High"
+                "confidence_level": "High",
             }
 
             duration = time.time() - start_time
@@ -228,14 +233,14 @@ class BackgroundTaskService:
                 task_id=task_id,
                 task_type="Research",
                 result=research_result,
-                duration=duration
+                duration=duration,
             )
 
             return TaskResult(
                 task_id=task_id,
                 success=True,
                 result=research_result,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         except Exception as e:
@@ -248,51 +253,56 @@ class BackgroundTaskService:
                 task_id=task_id,
                 task_type="Research",
                 error=error_msg,
-                duration=duration
+                duration=duration,
             )
 
             return TaskResult(
                 task_id=task_id,
                 success=False,
                 error=error_msg,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         finally:
             # Clean up task tracking
             self._running_tasks.pop(task_id, None)
 
-    def _send_completion_notification(self, user_id: str, task_id: str,
-                                      task_type: str, result: Dict[str, Any],
-                                      duration: float) -> None:
+    def _send_completion_notification(
+        self,
+        user_id: str,
+        task_id: str,
+        task_type: str,
+        result: Dict[str, Any],
+        duration: float,
+    ) -> None:
         """Send task completion notification with detailed results"""
 
         # Create rich notification with actual results
         if task_type == "Data Analysis":
             detailed_message = f"""📊 **{task_type} Complete!** ({duration:.1f}s)
 
-**Summary**: {result.get('summary', 'Analysis completed successfully')}
+**Summary**: {result.get("summary", "Analysis completed successfully")}
 
 **Key Insights**:
-{chr(10).join(f'• {insight}' for insight in result.get('insights', ['Results generated successfully']))}
+{chr(10).join(f"• {insight}" for insight in result.get("insights", ["Results generated successfully"]))}
 
-**Charts Generated**: {result.get('charts_generated', 'N/A')}
-**Recommendations**: {result.get('recommendations', 'See detailed results above')}
+**Charts Generated**: {result.get("charts_generated", "N/A")}
+**Recommendations**: {result.get("recommendations", "See detailed results above")}
 
 🆔 Task ID: {task_id[:8]}..."""
 
         else:  # Research task
             detailed_message = f"""🔍 **{task_type} Complete!** ({duration:.1f}s)
 
-**Topic**: {result.get('topic', 'Research completed')}
-**Summary**: {result.get('summary', 'Research completed successfully')}
+**Topic**: {result.get("topic", "Research completed")}
+**Summary**: {result.get("summary", "Research completed successfully")}
 
-**Sources Found**: {result.get('sources_found', 'Multiple sources')}
+**Sources Found**: {result.get("sources_found", "Multiple sources")}
 
 **Key Findings**:
-{chr(10).join(f'• {finding}' for finding in result.get('key_findings', ['Research completed successfully']))}
+{chr(10).join(f"• {finding}" for finding in result.get("key_findings", ["Research completed successfully"]))}
 
-**Confidence Level**: {result.get('confidence_level', 'High')}
+**Confidence Level**: {result.get("confidence_level", "High")}
 
 🆔 Task ID: {task_id[:8]}..."""
 
@@ -306,30 +316,36 @@ class BackgroundTaskService:
                 "duration_seconds": duration,
                 "result_summary": result.get("summary", "Task completed successfully"),
                 "full_results": result,  # Include full results
-                "completed_at": datetime.now(timezone.utc).isoformat()
-            }
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+            },
         }
 
         # Add to user's notification queue
         success = self.notification_model.add_notification(user_id, notification)
 
         if success:
-            logger.info(f"✅ Detailed notification sent to user {user_id} for task {task_id}")
+            logger.info(
+                f"✅ Detailed notification sent to user {user_id} for task {task_id}"
+            )
         else:
             logger.error(f"❌ Failed to send notification to user {user_id}")
 
         # Record analytics
         self.analytics_model.increment_counter("notifications_sent")
-        self.analytics_model.record_event("task_completed", {
-            "task_id": task_id,
-            "task_type": task_type.lower(),
-            "user_id": user_id,
-            "duration_seconds": duration,
-            "success": True
-        })
+        self.analytics_model.record_event(
+            "task_completed",
+            {
+                "task_id": task_id,
+                "task_type": task_type.lower(),
+                "user_id": user_id,
+                "duration_seconds": duration,
+                "success": True,
+            },
+        )
 
-    def _send_error_notification(self, user_id: str, task_id: str,
-                                 task_type: str, error: str, duration: float) -> None:
+    def _send_error_notification(
+        self, user_id: str, task_id: str, task_type: str, error: str, duration: float
+    ) -> None:
         """Send task error notification using Redis Lists"""
 
         notification = {
@@ -341,28 +357,33 @@ class BackgroundTaskService:
                 "task_type": task_type.lower(),
                 "duration_seconds": duration,
                 "error": error,
-                "failed_at": datetime.now(timezone.utc).isoformat()
-            }
+                "failed_at": datetime.now(timezone.utc).isoformat(),
+            },
         }
 
         # Add to user's notification queue
         success = self.notification_model.add_notification(user_id, notification)
 
         if success:
-            logger.info(f"❌ Error notification sent to user {user_id} for task {task_id}")
+            logger.info(
+                f"❌ Error notification sent to user {user_id} for task {task_id}"
+            )
         else:
             logger.error(f"❌ Failed to send error notification to user {user_id}")
 
         # Record analytics
         self.analytics_model.increment_counter("notifications_sent")
-        self.analytics_model.record_event("task_failed", {
-            "task_id": task_id,
-            "task_type": task_type.lower(),
-            "user_id": user_id,
-            "duration_seconds": duration,
-            "error": error,
-            "success": False
-        })
+        self.analytics_model.record_event(
+            "task_failed",
+            {
+                "task_id": task_id,
+                "task_type": task_type.lower(),
+                "user_id": user_id,
+                "duration_seconds": duration,
+                "error": error,
+                "success": False,
+            },
+        )
 
     def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """
@@ -381,14 +402,10 @@ class BackgroundTaskService:
                         "status": "completed",
                         "task_id": task_id,
                         "success": result.success,
-                        "duration": result.duration_seconds
+                        "duration": result.duration_seconds,
                     }
                 except Exception as e:
-                    return {
-                        "status": "failed",
-                        "task_id": task_id,
-                        "error": str(e)
-                    }
+                    return {"status": "failed", "task_id": task_id, "error": str(e)}
 
         return {"status": "not_found", "task_id": task_id}
 
@@ -416,5 +433,5 @@ class BackgroundTaskService:
             # Force shutdown anyway
             try:
                 self.executor.shutdown(wait=False)
-            except:
+            except Exception:
                 pass

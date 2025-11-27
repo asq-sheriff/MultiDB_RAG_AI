@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 from typing import Any, Dict, List, Optional
-from datetime import datetime
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, status
@@ -14,28 +13,31 @@ from pydantic import BaseModel, Field
 from app.core.auth_dependencies import (
     get_current_active_user,
     check_search_quota,
-    RateLimiter
+    RateLimiter,
 )
 from app.database.postgres_models import User
 
-# FIXED: Import service getters from app.dependencies, not auth_dependencies
 from app.dependencies import get_knowledge_service, get_billing_service
 from app.services.knowledge_service import KnowledgeService
 from app.services.billing_service import EnhancedBillingService
-from app.database.mongo_connection import enhanced_mongo_manager as mongo_manager
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/search", tags=["search"])
 
 # Rate limiter for search endpoints
-search_rate_limiter = RateLimiter(calls=60, period=60, resource="search")  # 60 searches per minute
+search_rate_limiter = RateLimiter(
+    calls=60, period=60, resource="search"
+)  # 60 searches per minute
 
 
 class SearchRequest(BaseModel):
     """Search request with validation"""
+
     query: str = Field(..., min_length=1, max_length=500, description="Search query")
-    route: Optional[str] = Field(default="auto", pattern="^(auto|exact|semantic|hybrid)$")
+    route: Optional[str] = Field(
+        default="auto", pattern="^(auto|exact|semantic|hybrid)$"
+    )
     top_k: Optional[int] = Field(default=5, ge=1, le=50)
     filters: Optional[Dict[str, Any]] = Field(default=None)
     include_metadata: bool = Field(default=True)
@@ -43,6 +45,7 @@ class SearchRequest(BaseModel):
 
 class SearchResult(BaseModel):
     """Individual search result"""
+
     document_id: Optional[str] = None
     title: str
     content: str
@@ -53,6 +56,7 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     """Search response with results and metadata"""
+
     query: str
     results: List[SearchResult]
     total_results: int
@@ -64,11 +68,11 @@ class SearchResponse(BaseModel):
 
 
 async def record_search_usage(
-        user: User,
-        query: str,
-        results_count: int,
-        search_type: str,
-        billing_service: EnhancedBillingService
+    user: User,
+    query: str,
+    results_count: int,
+    search_type: str,
+    billing_service: EnhancedBillingService,
 ):
     """Background task to record search usage"""
     try:
@@ -80,8 +84,8 @@ async def record_search_usage(
                 "type": "search",
                 "query_length": len(query),
                 "results_returned": results_count,
-                "search_type": search_type
-            }
+                "search_type": search_type,
+            },
         )
     except Exception as e:
         logger.error(f"Failed to record search usage: {e}")
@@ -89,12 +93,12 @@ async def record_search_usage(
 
 @router.post("/", response_model=SearchResponse)
 async def search(
-        request: SearchRequest,
-        background_tasks: BackgroundTasks,
-        current_user: User = Depends(check_search_quota),  # Quota check included
-        _rate_limit: User = Depends(search_rate_limiter),  # Rate limiting
-        knowledge_service: KnowledgeService = Depends(get_knowledge_service),
-        billing_service: EnhancedBillingService = Depends(get_billing_service)
+    request: SearchRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(check_search_quota),  # Quota check included
+    _rate_limit: User = Depends(search_rate_limiter),  # Rate limiting
+    knowledge_service: KnowledgeService = Depends(get_knowledge_service),
+    billing_service: EnhancedBillingService = Depends(get_billing_service),
 ) -> SearchResponse:
     """
     Perform semantic or hybrid search.
@@ -112,19 +116,18 @@ async def search(
         if not knowledge_service:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Search service is not available"
+                detail="Search service is not available",
             )
 
         # Determine allowed search types based on subscription
         allowed_routes = {
             "free": ["exact", "auto"],
             "pro": ["exact", "semantic", "hybrid", "auto"],
-            "enterprise": ["exact", "semantic", "hybrid", "auto"]
+            "enterprise": ["exact", "semantic", "hybrid", "auto"],
         }
 
         user_allowed_routes = allowed_routes.get(
-            current_user.subscription_plan,
-            ["exact"]
+            current_user.subscription_plan, ["exact"]
         )
 
         # Adjust route if not allowed
@@ -132,14 +135,16 @@ async def search(
         if route not in user_allowed_routes:
             if current_user.subscription_plan == "free":
                 route = "exact"  # Fallback for free users
-                logger.info(f"User {current_user.id} requested {request.route}, using {route} instead")
+                logger.info(
+                    f"User {current_user.id} requested {request.route}, using {route} instead"
+                )
 
         # Perform the search
         search_results = await knowledge_service.search_router(
             query=request.query,
             top_k=request.top_k or 5,
             route=route,
-            filters=request.filters
+            filters=request.filters,
         )
 
         # Process results
@@ -150,7 +155,7 @@ async def search(
                 title=r.get("title", "Document")[:100],
                 content=r.get("content", "")[:500],  # Limit content length
                 score=r.get("score", 0.0),
-                source=r.get("source", "unknown")
+                source=r.get("source", "unknown"),
             )
 
             # Add metadata based on subscription
@@ -172,7 +177,7 @@ async def search(
             query=request.query,
             results_count=len(results),
             search_type=search_results.get("route", route),
-            billing_service=billing_service
+            billing_service=billing_service,
         )
 
         # Determine search quality
@@ -193,9 +198,9 @@ async def search(
             usage_info={
                 "api_calls_used": quota_info["current_usage"],
                 "api_calls_limit": quota_info["max_allowed"],
-                "api_calls_remaining": quota_info["remaining"]
+                "api_calls_remaining": quota_info["remaining"],
             },
-            search_quality=search_quality
+            search_quality=search_quality,
         )
 
     except HTTPException:
@@ -203,19 +208,18 @@ async def search(
     except Exception as e:
         logger.error(f"Search error for user {current_user.id}: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Search failed"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Search failed"
         )
 
 
 @router.post("/semantic", response_model=SearchResponse)
 async def semantic_search(
-        request: SearchRequest,
-        background_tasks: BackgroundTasks,
-        current_user: User = Depends(check_search_quota),
-        _rate_limit: User = Depends(search_rate_limiter),
-        knowledge_service: KnowledgeService = Depends(get_knowledge_service),
-        billing_service: EnhancedBillingService = Depends(get_billing_service)
+    request: SearchRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(check_search_quota),
+    _rate_limit: User = Depends(search_rate_limiter),
+    knowledge_service: KnowledgeService = Depends(get_knowledge_service),
+    billing_service: EnhancedBillingService = Depends(get_billing_service),
 ) -> SearchResponse:
     """
     Perform pure semantic/vector search.
@@ -228,19 +232,26 @@ async def semantic_search(
             detail={
                 "error": "Semantic search is not available for free plan",
                 "upgrade_to": "pro",
-                "upgrade_url": "/billing/plans"
-            }
+                "upgrade_url": "/billing/plans",
+            },
         )
 
     request.route = "semantic"
-    return await search(request, background_tasks, current_user, _rate_limit, knowledge_service, billing_service)
+    return await search(
+        request,
+        background_tasks,
+        current_user,
+        _rate_limit,
+        knowledge_service,
+        billing_service,
+    )
 
 
 @router.get("/suggestions")
 async def get_search_suggestions(
-        query: str = Query(..., min_length=2, max_length=100),
-        limit: int = Query(default=5, ge=1, le=10),
-        current_user: User = Depends(get_current_active_user)
+    query: str = Query(..., min_length=2, max_length=100),
+    limit: int = Query(default=5, ge=1, le=10),
+    current_user: User = Depends(get_current_active_user),
 ) -> List[str]:
     """
     Get search suggestions based on partial query.
@@ -248,13 +259,12 @@ async def get_search_suggestions(
     Protected endpoint for autocomplete functionality.
     """
     try:
-        # Simple implementation - enhance based on your needs
         suggestions = [
             f"{query} in MongoDB",
             f"{query} with Redis",
             f"{query} using PostgreSQL",
             f"How to {query}",
-            f"What is {query}"
+            f"What is {query}",
         ]
 
         return suggestions[:limit]

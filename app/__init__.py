@@ -20,6 +20,7 @@ def get_seed_main():
         try:
             # Import only when needed, not at module load time
             from app.utils.seed_data import main as seed_main_import
+
             _seed_main = seed_main_import
             SEED_AVAILABLE = True
             logger.info("✅ Seed data module loaded successfully")
@@ -55,14 +56,14 @@ def get_sample_questions():
         "What is machine learning?",
         "How do I reset my password?",
         "What is the policy for refunds?",
-        "How do I contact support?"
+        "How do I contact support?",
     ]
 
 
 # Export public interface
 __all__ = [
-    'seed_knowledge_base',
-    'get_sample_questions',
-    'get_seed_main',
-    'SEED_AVAILABLE'
+    "seed_knowledge_base",
+    "get_sample_questions",
+    "get_seed_main",
+    "SEED_AVAILABLE",
 ]

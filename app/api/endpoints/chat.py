@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 from typing import Any, Dict, List, Optional
-from datetime import datetime
 from uuid import uuid4
 import logging
 
@@ -15,12 +14,15 @@ from pydantic import BaseModel, Field
 from app.core.auth_dependencies import (
     get_current_active_user,
     check_message_quota,
-    RateLimiter
+    RateLimiter,
 )
 from app.database.postgres_models import User
 
-# FIXED: Import service getters from app.dependencies, not auth_dependencies
-from app.dependencies import get_chatbot_service, get_knowledge_service, get_billing_service
+from app.dependencies import (
+    get_chatbot_service,
+    get_knowledge_service,
+    get_billing_service,
+)
 from app.services.chatbot_service import EnhancedChatbotService as ChatbotService
 from app.services.knowledge_service import KnowledgeService
 from app.services.billing_service import EnhancedBillingService
@@ -30,28 +32,51 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 # Rate limiter for chat endpoints
-chat_rate_limiter = RateLimiter(calls=30, period=60, resource="chat")  # 30 messages per minute
+chat_rate_limiter = RateLimiter(
+    calls=30, period=60, resource="chat"
+)  # 30 messages per minute
 
 
 class ChatRequest(BaseModel):
     """Enhanced chat request with validation"""
+
     message: str = Field(..., min_length=1, max_length=2000, description="User message")
-    session_id: Optional[str] = Field(default=None, description="Session ID for conversation continuity")
+    session_id: Optional[str] = Field(
+        default=None, description="Session ID for conversation continuity"
+    )
 
     # RAG Configuration
-    enable_rag: Optional[bool] = Field(default=True, description="Enable RAG context retrieval")
-    route: Optional[str] = Field(default="auto", description="Search routing: exact | semantic | hybrid | auto")
-    top_k: Optional[int] = Field(default=5, ge=1, le=20, description="Number of context documents")
-    filters: Optional[Dict[str, Any]] = Field(default=None, description="Optional filters")
+    enable_rag: Optional[bool] = Field(
+        default=True, description="Enable RAG context retrieval"
+    )
+    route: Optional[str] = Field(
+        default="auto", description="Search routing: exact | semantic | hybrid | auto"
+    )
+    top_k: Optional[int] = Field(
+        default=5, ge=1, le=20, description="Number of context documents"
+    )
+    filters: Optional[Dict[str, Any]] = Field(
+        default=None, description="Optional filters"
+    )
 
     # Response Configuration
-    response_style: Optional[str] = Field(default="helpful", description="Response style")
-    include_sources: Optional[bool] = Field(default=True, description="Include source citations")
-    max_context_length: Optional[int] = Field(default=2000, description="Maximum context characters")
-    temperature: Optional[float] = Field(default=0.7, ge=0.0, le=1.0, description="Generation temperature")
+    response_style: Optional[str] = Field(
+        default="helpful", description="Response style"
+    )
+    include_sources: Optional[bool] = Field(
+        default=True, description="Include source citations"
+    )
+    max_context_length: Optional[int] = Field(
+        default=2000, description="Maximum context characters"
+    )
+    temperature: Optional[float] = Field(
+        default=0.7, ge=0.0, le=1.0, description="Generation temperature"
+    )
 
     # Debug Options
-    debug_mode: Optional[bool] = Field(default=False, description="Include debug information")
+    debug_mode: Optional[bool] = Field(
+        default=False, description="Include debug information"
+    )
 
 
 class SourceDocument(BaseModel):
@@ -64,6 +89,7 @@ class SourceDocument(BaseModel):
 
 class ChatResponse(BaseModel):
     """Enhanced chat response with billing info"""
+
     session_id: str
     message_id: str
     answer: str
@@ -72,7 +98,7 @@ class ChatResponse(BaseModel):
 
     # RAG Information
     context_used: bool
-    sources: List[SourceDocument] = []
+    sources: List[SourceDocument] = Field(default_factory=list)
     retrieval_route: Optional[str] = None
 
     # Performance Metrics
@@ -92,19 +118,18 @@ async def record_usage_background(
     resource_type: str,
     quantity: int,
     metadata: Dict[str, Any],
-    billing_service: EnhancedBillingService
+    billing_service: EnhancedBillingService,
 ):
     """Background task to record usage"""
     try:
         success = await billing_service.record_usage(
-            user=user,
-            resource_type=resource_type,
-            quantity=quantity,
-            metadata=metadata
+            user=user, resource_type=resource_type, quantity=quantity, metadata=metadata
         )
 
         if success:
-            logger.info(f"Usage recorded for user {user.id}: {resource_type} x{quantity}")
+            logger.info(
+                f"Usage recorded for user {user.id}: {resource_type} x{quantity}"
+            )
         else:
             logger.error(f"Failed to record usage for user {user.id}")
 
@@ -120,7 +145,7 @@ async def send_chat_message(
     _rate_limit: User = Depends(chat_rate_limiter),  # Rate limiting
     chatbot: ChatbotService = Depends(get_chatbot_service),
     knowledge_service: KnowledgeService = Depends(get_knowledge_service),
-    billing_service: EnhancedBillingService = Depends(get_billing_service)
+    billing_service: EnhancedBillingService = Depends(get_billing_service),
 ) -> ChatResponse:
     """
     Send a chat message with RAG support.
@@ -146,7 +171,7 @@ async def send_chat_message(
                 query=request.message,
                 top_k=request.top_k or 5,
                 route=request.route or "auto",
-                filters=request.filters
+                filters=request.filters,
             )
 
             if search_results and search_results.get("results"):
@@ -157,7 +182,7 @@ async def send_chat_message(
                         title=r.get("title", "Document")[:100],
                         excerpt=r.get("content", "")[:200],
                         relevance_score=r.get("score", 0.0),
-                        source_type=r.get("source", "unknown")
+                        source_type=r.get("source", "unknown"),
                     )
                     for r in context[:3]  # Top 3 sources
                 ]
@@ -168,7 +193,7 @@ async def send_chat_message(
             message=request.message,
             route=request.route,
             top_k=request.top_k,
-            filters=request.filters
+            filters=request.filters,
         )
 
         answer = chat_result.get("answer", "I couldn't generate a response.")
@@ -197,9 +222,9 @@ async def send_chat_message(
                 "message_id": message_id,
                 "tokens_used": tokens_used,
                 "processing_time_ms": processing_time_ms,
-                "rag_enabled": request.enable_rag
+                "rag_enabled": request.enable_rag,
             },
-            billing_service=billing_service
+            billing_service=billing_service,
         )
 
         # If RAG was used, also record API call
@@ -210,7 +235,7 @@ async def send_chat_message(
                 resource_type="api_calls",
                 quantity=1,
                 metadata={"type": "rag_search", "session_id": session_id},
-                billing_service=billing_service
+                billing_service=billing_service,
             )
 
         return ChatResponse(
@@ -228,13 +253,15 @@ async def send_chat_message(
             usage_info={
                 "messages_used": quota_info["current_usage"],
                 "messages_limit": quota_info["max_allowed"],
-                "messages_remaining": quota_info["remaining"]
+                "messages_remaining": quota_info["remaining"],
             },
             debug_info={
                 "user_id": str(current_user.id),
                 "model_used": chat_result.get("model", "unknown"),
-                "fallback_applied": chat_result.get("fallback_applied", False)
-            } if request.debug_mode else None
+                "fallback_applied": chat_result.get("fallback_applied", False),
+            }
+            if request.debug_mode
+            else None,
         )
 
     except HTTPException:
@@ -243,7 +270,7 @@ async def send_chat_message(
         logger.error(f"Chat error for user {current_user.id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process chat message"
+            detail="Failed to process chat message",
         )
 
 
@@ -252,7 +279,7 @@ async def get_chat_history(
     session_id: Optional[str] = None,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ) -> Dict[str, Any]:
     """
     Get chat history for the current user.
@@ -260,8 +287,6 @@ async def get_chat_history(
     Protected endpoint that retrieves conversation history from ScyllaDB.
     """
     try:
-        # This is a placeholder implementation
-        # In production, query ScyllaDB for actual conversation history
         return {
             "user_id": str(current_user.id),
             "session_id": session_id,
@@ -269,14 +294,13 @@ async def get_chat_history(
             "total": 0,
             "limit": limit,
             "offset": offset,
-            "note": "Implement ScyllaDB query for actual history"
         }
 
     except Exception as e:
         logger.error(f"Failed to get chat history: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve chat history"
+            detail="Failed to retrieve chat history",
         )
 
 
@@ -286,24 +310,20 @@ async def submit_feedback(
     message_id: str,
     rating: int = Query(..., ge=1, le=5),
     feedback_text: Optional[str] = None,
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_user),
 ) -> Dict[str, str]:
     """Submit feedback for a chat response"""
     try:
-        # Store feedback (implement based on your storage)
         logger.info(
             f"Feedback from user {current_user.id}: "
             f"session={session_id}, rating={rating}"
         )
 
-        return {
-            "status": "success",
-            "message": "Feedback recorded successfully"
-        }
+        return {"status": "success", "message": "Feedback recorded successfully"}
 
     except Exception as e:
         logger.error(f"Failed to record feedback: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to record feedback"
+            detail="Failed to record feedback",
         )

@@ -14,8 +14,9 @@ from app.database.postgres_models import User
 logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
+
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> User:
     """Get current user from JWT token."""
     auth_service = get_auth_service()  # Get initialized service inside the function
@@ -28,32 +29,49 @@ async def get_current_user(
     try:
         user = await auth_service.get_user_by_id(UUID(user_id))
         if not user or not user.is_active:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found or inactive",
+            )
         return user
     except (ValueError, HTTPException):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user token"
+        )
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
     """Ensure user is active."""
     if not current_user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user"
+        )
     return current_user
+
 
 async def get_admin_user(current_user: User = Depends(get_current_active_user)) -> User:
     """Ensure user has admin privileges."""
-    if not getattr(current_user, 'is_superuser', False):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    if not getattr(current_user, "is_superuser", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
     return current_user
+
 
 class QuotaChecker:
     """Dependency class for checking user quotas - FIXED to provide session."""
+
     def __init__(self, resource_type: str):
         self.resource_type = resource_type
 
     async def __call__(
         self,
         current_user: User = Depends(get_current_active_user),
-        session: AsyncSession = Depends(get_db_session)  # FIXED: Get session dependency
+        session: AsyncSession = Depends(
+            get_db_session
+        ),  # FIXED: Get session dependency
     ) -> User:
         """Check if user has quota for the requested resource."""
         # Get the billing service inside the call
@@ -63,24 +81,28 @@ class QuotaChecker:
             quota_info = await billing_service.check_user_quota(
                 current_user,
                 self.resource_type,
-                session  # FIXED: Added session parameter
+                session,  # FIXED: Added session parameter
             )
             if not quota_info.get("has_quota"):
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail=f"Quota exceeded for resource: {self.resource_type}"
+                    detail=f"Quota exceeded for resource: {self.resource_type}",
                 )
         except HTTPException:
             raise  # Re-raise HTTP exceptions
         except Exception as e:
-            logger.error(f"Quota check failed for user {current_user.id}, allowing request: {e}")
+            logger.error(
+                f"Quota check failed for user {current_user.id}, allowing request: {e}"
+            )
             # Allow request on error (fail open)
         return current_user
+
 
 # Pre-configured quota checkers for common resources
 check_message_quota = QuotaChecker("messages")
 check_search_quota = QuotaChecker("api_calls")
 check_background_task_quota = QuotaChecker("background_tasks")
+
 
 async def get_optional_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
@@ -93,15 +115,19 @@ async def get_optional_user(
     except HTTPException:
         return None
 
+
 class RateLimiter:
     """Rate limiting dependency - FIXED for better Redis handling."""
+
     def __init__(self, calls: int = 10, period: int = 60, resource: str = "general"):
         self.calls = calls
         self.period = period
         self.resource = resource
         self._memory_limits = {}
 
-    async def __call__(self, current_user: User = Depends(get_current_active_user)) -> User:
+    async def __call__(
+        self, current_user: User = Depends(get_current_active_user)
+    ) -> User:
         """Check rate limit for user."""
         user_key = f"{current_user.id}:{self.resource}"
 
@@ -109,6 +135,7 @@ class RateLimiter:
         redis_available = False
         try:
             from app.database.redis_connection import redis_manager
+
             if redis_manager and redis_manager.client:
                 redis_manager.client.ping()
                 redis_available = True
@@ -121,7 +148,7 @@ class RateLimiter:
                 if current > self.calls:
                     raise HTTPException(
                         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                        detail=f"Rate limit exceeded. Max {self.calls} calls per {self.period} seconds."
+                        detail=f"Rate limit exceeded. Max {self.calls} calls per {self.period} seconds.",
                     )
         except ImportError:
             logger.debug("Redis not available for rate limiting")
@@ -132,20 +159,20 @@ class RateLimiter:
         # Fallback to in-memory rate limiting if Redis is not available
         if not redis_available:
             import time
+
             now = time.time()
             if user_key not in self._memory_limits:
                 self._memory_limits[user_key] = []
 
             # Remove timestamps outside the current window
             self._memory_limits[user_key] = [
-                t for t in self._memory_limits[user_key]
-                if now - t < self.period
+                t for t in self._memory_limits[user_key] if now - t < self.period
             ]
 
             if len(self._memory_limits[user_key]) >= self.calls:
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail=f"Rate limit exceeded. Max {self.calls} calls per {self.period} seconds."
+                    detail=f"Rate limit exceeded. Max {self.calls} calls per {self.period} seconds.",
                 )
             self._memory_limits[user_key].append(now)
 

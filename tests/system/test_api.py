@@ -1,4 +1,5 @@
-"""Fixed API endpoint tests - updated to match new API structure"""
+"""API endpoint tests"""
+
 import pytest
 
 
@@ -21,19 +22,18 @@ class TestApiEndpoints:
         # but that's OK for testing
         assert data["status"] in ["healthy", "degraded", "error"]
 
-        # If status is error, it might be due to some services not being available
-        if data["status"] == "error":
-            # Check that we at least got a response
-            assert "uptime_seconds" in data
+        # Always verify uptime_seconds exists and is positive
+        assert "uptime_seconds" in data
+        assert isinstance(data["uptime_seconds"], (int, float))
+        assert data["uptime_seconds"] >= 0
 
     async def test_root(self, test_client):
-        """Test root endpoint - FIXED to match new structure."""
+        """Test root endpoint."""
         response = await test_client.get("/")
         assert response.status_code == 200
 
         data = response.json()
 
-        # FIXED: Check for the actual fields returned by the root endpoint
         assert "message" in data
         assert data["message"] == "Enhanced AI Chatbot API"
 

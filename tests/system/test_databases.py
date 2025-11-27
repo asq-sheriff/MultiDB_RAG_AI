@@ -2,7 +2,6 @@
 """Test all database connections"""
 
 import asyncio
-import os
 import sys
 from pathlib import Path
 
@@ -18,6 +17,7 @@ async def test_postgresql():
     """Test PostgreSQL connection"""
     try:
         from app.database.postgres_connection import postgres_manager
+
         await postgres_manager.initialize()
 
         if await postgres_manager.test_connection():
@@ -46,20 +46,22 @@ async def test_mongodb():
 
         # Test vector search
         test_vector = [0.1] * 768
-        pipeline = [{
-            '$vectorSearch': {
-                'index': 'vector_idx_embeddings_embedding',
-                'path': 'embedding',
-                'queryVector': test_vector,
-                'numCandidates': 10,
-                'limit': 1
+        pipeline = [
+            {
+                "$vectorSearch": {
+                    "index": "vector_idx_embeddings_embedding",
+                    "path": "embedding",
+                    "queryVector": test_vector,
+                    "numCandidates": 10,
+                    "limit": 1,
+                }
             }
-        }]
+        ]
 
         try:
-            result = await db.embeddings.aggregate(pipeline).to_list(1)
+            await db.embeddings.aggregate(pipeline).to_list(1)
             vector_works = True
-        except:
+        except Exception:
             vector_works = False
 
         print(f"✅ MongoDB: Connected (Docs: {count}, Vector Search: {vector_works})")
@@ -73,6 +75,7 @@ def test_redis():
     """Test Redis connection"""
     try:
         from app.database.redis_connection import redis_manager
+
         redis_manager.initialize()
 
         if redis_manager.is_connected:

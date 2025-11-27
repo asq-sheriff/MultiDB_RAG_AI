@@ -5,10 +5,12 @@ from contextlib import asynccontextmanager
 
 try:
     import redis.asyncio as aioredis
+
     ASYNC_REDIS_AVAILABLE = True
 except ImportError:
     try:
         import aioredis
+
         ASYNC_REDIS_AVAILABLE = True
     except ImportError:
         ASYNC_REDIS_AVAILABLE = False
@@ -41,7 +43,7 @@ class RedisConnectionManager:
                 socket_timeout=config.redis.socket_timeout,
                 socket_connect_timeout=config.redis.socket_connect_timeout,
                 decode_responses=True,
-                health_check_interval=30
+                health_check_interval=30,
             )
 
             self._client = redis.Redis(connection_pool=self._pool)
@@ -52,19 +54,27 @@ class RedisConnectionManager:
                         host=config.redis.host,
                         port=config.redis.port,
                         db=config.redis.db,
-                        password=config.redis.password if config.redis.password else None,
+                        password=config.redis.password
+                        if config.redis.password
+                        else None,
                         max_connections=config.redis.max_connections,
                         socket_timeout=config.redis.socket_timeout,
                         socket_connect_timeout=config.redis.socket_connect_timeout,
-                        decode_responses=True
+                        decode_responses=True,
                     )
-                    self._async_client = aioredis.Redis(connection_pool=self._async_pool)
+                    self._async_client = aioredis.Redis(
+                        connection_pool=self._async_pool
+                    )
                 except Exception as e:
-                    logger.warning(f"Async Redis setup failed: {e}, continuing with sync only")
+                    logger.warning(
+                        f"Async Redis setup failed: {e}, continuing with sync only"
+                    )
 
             self._client.ping()
             self._connected = True
-            logger.info(f"Redis {redis.__version__} connected successfully to {config.redis.host}:{config.redis.port}")
+            logger.info(
+                f"Redis {redis.__version__} connected successfully to {config.redis.host}:{config.redis.port}"
+            )
 
         except Exception as e:
             self._connected = False
@@ -120,9 +130,10 @@ class RedisConnectionManager:
             if self._pool:
                 self._pool.disconnect()
 
-            if self._async_pool and hasattr(self._async_pool, 'disconnect'):
+            if self._async_pool and hasattr(self._async_pool, "disconnect"):
                 try:
                     import asyncio
+
                     if asyncio.get_event_loop().is_running():
                         asyncio.create_task(self._async_pool.disconnect())
                     else:
@@ -149,11 +160,13 @@ class RedisConnectionManager:
 
 redis_manager: Optional[RedisConnectionManager] = None
 
+
 def get_redis_manager() -> "RedisConnectionManager":
     global redis_manager
     if redis_manager is None:
         redis_manager = RedisConnectionManager()
     return redis_manager
+
 
 def get_redis() -> redis.Redis:
     manager = get_redis_manager()

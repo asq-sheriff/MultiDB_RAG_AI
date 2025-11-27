@@ -51,8 +51,7 @@ async def test_generation_service():
         # Test generation
         start = time.time()
         response = await generation_service.generate(
-            "Hello, how are you?",
-            max_tokens=20
+            "Hello, how are you?", max_tokens=20
         )
         elapsed = time.time() - start
 
@@ -79,12 +78,10 @@ async def test_knowledge_service():
 
         # Test search
         result = await knowledge_service.search_router(
-            query="test query",
-            top_k=3,
-            route="auto"
+            query="test query", top_k=3, route="auto"
         )
 
-        if result and 'results' in result:
+        if result and "results" in result:
             print(f"✅ Knowledge: Working ({len(result['results'])} results)")
             return True
         else:
@@ -107,12 +104,11 @@ async def test_chatbot_service():
 
         # Test chat
         response = await chatbot_service.answer_user_message(
-            user_id="test_user",
-            message="Hello"
+            user_id="test_user", message="Hello"
         )
 
-        if response and 'answer' in response:
-            print(f"✅ Chatbot: Working")
+        if response and "answer" in response:
+            print("✅ Chatbot: Working")
             return True
         else:
             print("❌ Chatbot: No response")
