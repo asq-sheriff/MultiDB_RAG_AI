@@ -286,3 +286,11 @@ __pycache__/
 .claude
 .claude_ignore
 .claude_workflows
+claude.md
+CLAUDE.md
+claude_sessions/
+.cursor/
+.aider*
+.continue/
+copilot*
+.github/copilot*

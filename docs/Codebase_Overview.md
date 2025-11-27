@@ -31,8 +31,8 @@ It also showcases **multi‑database** integration: MongoDB (vectors), PostgreSQ
 │   └── telemetry/            # Logging/metrics hooks (Langfuse/Loki placeholders)
 ├── docs/                     # Human docs (this overview, design, diagrams)
 │   ├── images/               # Architecture diagrams
-│   ├── multidb_rag_chatbot_v3.0.md     # Engineering‑focused system design
-│   └── Composable_AI_Stack_Blueprint.pdf
+│   ├── System_Design.md               # Engineering‑focused system design
+│   └── Enterprise_Architecture.md       # Cloud-agnostic platform design
 ├── tests/                    # Pytest suites (unit/integration)
 ├── scripts/                  # Dev scripts (codex_publish, setup)
 ├── docker-compose.yml        # Local dev stack (dbs + app)

@@ -1,6 +1,6 @@
 # MultiDB Chatbot — V1 Project Summary & Roadmap
 
-> **Docs map:** Deep technical design in [Unified System Design (v3.0)](multidb_rag_chatbot_v3.0.md) and conceptual blueprint in [Composable AI Stack Whitepaper](Composable%20AI%20Stack%20Blueprint.pdf).  
+> **Docs map:** Deep technical design in [System Design](System_Design.md) and conceptual blueprint in [Enterprise Architecture](Enterprise_Architecture.md).
 > **Audience:** Hiring managers, reviewers, and new contributors.  
 > **Version:** `v1.0` (proposed tag).
 
@@ -103,4 +103,6 @@
 
 ## References
 
-- [Unified System Design (v3.0)](multidb_rag_chatbot_v3.0.md)
+- [System Design](System_Design.md)
+- [Architecture Overview](Architecture_Overview.md)
+- [Codebase Overview](Codebase_Overview.md)
