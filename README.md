@@ -2,7 +2,9 @@
 
 # MultiDB-AI
 
-### Enterprise-Grade AI Architecture for Production Systems
+### RAG Pipeline | Vector Search | LLM Integration | Multi-Database Architecture
+
+#### Enterprise-Grade AI Architecture for Production Systems
 
 [![CI](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://python.org)
@@ -131,7 +133,7 @@ Complete retrieval-augmented generation:
 ```bash
 # Clone and start all services
 git clone https://github.com/asq-sheriff/MultiDB-AI.git
-cd MultiDB-AI
+cd MultiDB_RAG_AI-AI
 docker-compose up -d
 
 # Get authentication token
