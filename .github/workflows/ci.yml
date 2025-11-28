@@ -47,6 +47,14 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
