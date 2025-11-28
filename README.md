@@ -1,12 +1,12 @@
 <div align="center">
 
-# MultiDB-AI
+# MultiDB_RAG_AI
 
 ### RAG Pipeline | Vector Search | LLM Integration | Multi-Database Architecture
 
 #### Enterprise-Grade AI Architecture for Production Systems
 
-[![CI](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml)
+[![CI](https://github.com/asq-sheriff/MultiDB_RAG_AI/actions/workflows/ci.yml/badge.svg)](https://github.com/asq-sheriff/MultiDB_RAG_AI/actions/workflows/ci.yml)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://langchain.com)
@@ -135,8 +135,8 @@ Complete retrieval-augmented generation:
 
 ```bash
 # Clone and start all services
-git clone https://github.com/asq-sheriff/MultiDB-AI.git
-cd MultiDB_RAG_AI-AI
+git clone https://github.com/asq-sheriff/MultiDB_RAG_AI.git
+cd MultiDB_RAG_AI
 docker-compose up -d
 
 # Get authentication token
@@ -180,7 +180,7 @@ make build        # Build production image
 ## Project Structure
 
 ```
-multidb-ai/
+MultiDB_RAG_AI/
 ├── app/
 │   ├── api/                 # FastAPI routes and schemas
 │   │   └── endpoints/       # Auth, chat, billing, search
@@ -281,7 +281,7 @@ make test && make lint
 
 ## License
 
-MIT License — See [LICENSE](LICENSE) for details.
+Apache 2.0 License — See [LICENSE](LICENSE) for details.
 
 ---
 
@@ -289,6 +289,6 @@ MIT License — See [LICENSE](LICENSE) for details.
 
 **Built to demonstrate production AI engineering**
 
-[View Documentation](docs/) · [Report Issue](https://github.com/asq-sheriff/MultiDB-AI/issues) · [Connect on LinkedIn](https://www.linkedin.com/in/asheriff)
+[View Documentation](docs/) · [Report Issue](https://github.com/asq-sheriff/MultiDB_RAG_AI/issues) · [Connect on LinkedIn](https://www.linkedin.com/in/asheriff)
 
 </div>
