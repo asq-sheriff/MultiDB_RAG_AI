@@ -5,7 +5,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         python-version: [ "3.11", "3.12" ]
 
