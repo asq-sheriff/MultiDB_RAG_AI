@@ -16,7 +16,7 @@
 [![ScyllaDB](https://img.shields.io/badge/ScyllaDB-6CD5E7?logo=scylladb&logoColor=white)](https://scylladb.com)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)](https://redis.io)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://docker.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 <br/>
 
