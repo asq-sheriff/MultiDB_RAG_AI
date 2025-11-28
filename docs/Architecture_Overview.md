@@ -2176,7 +2176,7 @@ def materialized_vector_store(document_embeddings: List[Dict[str, Any]]) -> Dict
     """
     Asset 6: Store embeddings and documents in MongoDB.
     
-    Integration: Uses existing mongo_manager from MultiDB system
+    Integration: Uses existing mongo_manager from MultiDB_RAG_AI system
     Output: Storage confirmation and statistics
     """
     # Store documents in documents collection

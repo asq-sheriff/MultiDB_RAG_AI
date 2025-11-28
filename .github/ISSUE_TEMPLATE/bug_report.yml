@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible bug in MultiDB-AI
+description: Report a reproducible bug in MultiDB_RAG_AI-AI
 title: "[BUG] "
 labels: ["bug"]
 assignees: ["asq-sheriff"]

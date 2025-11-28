@@ -1,0 +1,212 @@
+<svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="#1a1a1a">
+    RAG (Retrieval-Augmented Generation) Workflow
+  </text>
+  
+  <!-- Phase 1 Background -->
+  <rect x="20" y="60" width="360" height="380" fill="#e8f4f8" stroke="#4a90e2" stroke-width="2" rx="10"/>
+  
+  <!-- Phase 1 Title -->
+  <text x="200" y="85" text-anchor="middle" font-size="18" font-weight="bold" fill="#2c5aa0">
+    Phase 1: Building the Knowledge Library
+  </text>
+  <text x="200" y="105" text-anchor="middle" font-size="14" fill="#2c5aa0">
+    (One-time Data Preparation)
+  </text>
+  
+  <!-- Phase 1 Components -->
+  <!-- Documents -->
+  <rect x="80" y="125" width="240" height="40" fill="#ffffff" stroke="#4a90e2" stroke-width="2" rx="5"/>
+  <text x="200" y="150" text-anchor="middle" font-size="14" fill="#333">
+    Your Documents
+  </text>
+  <text x="200" y="160" text-anchor="middle" font-size="11" fill="#666">
+    (PDF, TXT, HTML, etc.)
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 200 165 L 200 185" stroke="#4a90e2" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+  
+  <!-- 1. Chunking -->
+  <rect x="80" y="190" width="240" height="45" fill="#ffffff" stroke="#4a90e2" stroke-width="2" rx="5"/>
+  <text x="200" y="208" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    1. Chunking
+  </text>
+  <text x="200" y="225" text-anchor="middle" font-size="11" fill="#666">
+    Break into meaningful pieces
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 200 235 L 200 255" stroke="#4a90e2" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+  
+  <!-- 2. Embedding -->
+  <rect x="80" y="260" width="240" height="45" fill="#ffffff" stroke="#4a90e2" stroke-width="2" rx="5"/>
+  <text x="200" y="278" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    2. Embedding
+  </text>
+  <text x="200" y="295" text-anchor="middle" font-size="11" fill="#666">
+    Convert text to numerical vectors
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 200 305 L 200 325" stroke="#4a90e2" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+  
+  <!-- 3. Indexing & Storing -->
+  <rect x="80" y="330" width="240" height="45" fill="#ffffff" stroke="#4a90e2" stroke-width="2" rx="5"/>
+  <text x="200" y="348" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    3. Indexing &amp; Storing
+  </text>
+  <text x="200" y="365" text-anchor="middle" font-size="11" fill="#666">
+    Store vectors in Vector Database
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 200 375 L 200 395" stroke="#4a90e2" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+  
+  <!-- Knowledge Library -->
+  <rect x="80" y="400" width="240" height="30" fill="#4a90e2" stroke="#2c5aa0" stroke-width="2" rx="5"/>
+  <text x="200" y="420" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">
+    Searchable Knowledge Library
+  </text>
+  
+  <!-- Connection Arrow to Phase 2 -->
+  <path d="M 380 415 L 420 415" stroke="#666" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowgray)"/>
+  
+  <!-- Phase 2 Background -->
+  <rect x="420" y="60" width="360" height="820" fill="#f0f8f0" stroke="#5cb85c" stroke-width="2" rx="10"/>
+  
+  <!-- Phase 2 Title -->
+  <text x="600" y="85" text-anchor="middle" font-size="18" font-weight="bold" fill="#2d6a2d">
+    Phase 2: Answering a Question
+  </text>
+  <text x="600" y="105" text-anchor="middle" font-size="14" fill="#2d6a2d">
+    (Real-time Query Process)
+  </text>
+  
+  <!-- Phase 2 Components -->
+  <!-- User's Question -->
+  <rect x="480" y="125" width="240" height="40" fill="#ffffff" stroke="#5cb85c" stroke-width="2" rx="5"/>
+  <text x="600" y="150" text-anchor="middle" font-size="14" fill="#333">
+    User's Question
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 600 165 L 600 185" stroke="#5cb85c" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+  
+  <!-- 1. Embed the Question -->
+  <rect x="480" y="190" width="240" height="55" fill="#ffffff" stroke="#5cb85c" stroke-width="2" rx="5"/>
+  <text x="600" y="208" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    1. Embed the Question
+  </text>
+  <text x="600" y="225" text-anchor="middle" font-size="11" fill="#666">
+    Use same embedding model
+  </text>
+  <text x="600" y="238" text-anchor="middle" font-size="11" fill="#666">
+    to convert question to vector
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 600 245 L 600 275" stroke="#5cb85c" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+  
+  <!-- 2. Search -->
+  <rect x="480" y="280" width="240" height="55" fill="#ffffff" stroke="#5cb85c" stroke-width="2" rx="5"/>
+  <text x="600" y="298" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    2. Search
+  </text>
+  <text x="600" y="315" text-anchor="middle" font-size="11" fill="#666">
+    Find most similar vectors
+  </text>
+  <text x="600" y="328" text-anchor="middle" font-size="11" fill="#666">
+    in Vector Database
+  </text>
+  
+  <!-- Connection from Knowledge Library -->
+  <path d="M 320 415 L 450 307 L 480 307" stroke="#666" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowgray)"/>
+  
+  <!-- Arrow -->
+  <path d="M 600 335 L 600 365" stroke="#5cb85c" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+  
+  <!-- 3. Retrieve -->
+  <rect x="480" y="370" width="240" height="55" fill="#ffffff" stroke="#5cb85c" stroke-width="2" rx="5"/>
+  <text x="600" y="388" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    3. Retrieve
+  </text>
+  <text x="600" y="405" text-anchor="middle" font-size="11" fill="#666">
+    Get original text chunks for
+  </text>
+  <text x="600" y="418" text-anchor="middle" font-size="11" fill="#666">
+    top-matching vectors
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 600 425 L 600 455" stroke="#5cb85c" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+  
+  <!-- 4. Augment -->
+  <rect x="480" y="460" width="240" height="55" fill="#ffffff" stroke="#5cb85c" stroke-width="2" rx="5"/>
+  <text x="600" y="478" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    4. Augment
+  </text>
+  <text x="600" y="495" text-anchor="middle" font-size="11" fill="#666">
+    Combine question with
+  </text>
+  <text x="600" y="508" text-anchor="middle" font-size="11" fill="#666">
+    retrieved text chunks
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 600 515 L 600 545" stroke="#5cb85c" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+  
+  <!-- 5. Generate -->
+  <rect x="480" y="550" width="240" height="70" fill="#fffacd" stroke="#f0ad4e" stroke-width="2" rx="5"/>
+  <text x="600" y="570" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">
+    5. Generate
+  </text>
+  <text x="600" y="587" text-anchor="middle" font-size="11" fill="#666">
+    Send combined prompt to LLM
+  </text>
+  <text x="600" y="600" text-anchor="middle" font-size="11" fill="#666">
+    for context-aware answer
+  </text>
+  <text x="600" y="613" text-anchor="middle" font-size="12" font-weight="bold" fill="#d58512">
+    (LLM Processing)
+  </text>
+  
+  <!-- Arrow -->
+  <path d="M 600 620 L 600 650" stroke="#5cb85c" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+  
+  <!-- Final Answer -->
+  <rect x="480" y="655" width="240" height="40" fill="#5cb85c" stroke="#2d6a2d" stroke-width="2" rx="5"/>
+  <text x="600" y="680" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">
+    Final Answer to User
+  </text>
+  
+  <!-- Legend -->
+  <g transform="translate(50, 800)">
+    <text x="0" y="0" font-size="14" font-weight="bold" fill="#333">Legend:</text>
+    <rect x="0" y="10" width="20" height="15" fill="#e8f4f8" stroke="#4a90e2" stroke-width="1"/>
+    <text x="25" y="22" font-size="12" fill="#333">Phase 1: Offline preparation (one-time)</text>
+    
+    <rect x="200" y="10" width="20" height="15" fill="#f0f8f0" stroke="#5cb85c" stroke-width="1"/>
+    <text x="225" y="22" font-size="12" fill="#333">Phase 2: Real-time query processing</text>
+    
+    <rect x="450" y="10" width="20" height="15" fill="#fffacd" stroke="#f0ad4e" stroke-width="1"/>
+    <text x="475" y="22" font-size="12" fill="#333">LLM Component</text>
+    
+    <line x1="0" y1="40" x2="30" y2="40" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="35" y="44" font-size="12" fill="#333">Data flow between phases</text>
+  </g>
+  
+  <!-- Arrow Markers -->
+  <defs>
+    <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#4a90e2"/>
+    </marker>
+    <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#5cb85c"/>
+    </marker>
+    <marker id="arrowgray" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#666"/>
+    </marker>
+  </defs>
+</svg>
