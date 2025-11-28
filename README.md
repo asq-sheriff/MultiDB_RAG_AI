@@ -9,8 +9,11 @@
 [![CI](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/asq-sheriff/MultiDB-AI/actions/workflows/ci.yml)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white)](https://langchain.com)
+[![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=white)](https://openai.com)
 [![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://postgresql.org)
+[![ScyllaDB](https://img.shields.io/badge/ScyllaDB-6CD5E7?logo=scylladb&logoColor=white)](https://scylladb.com)
 [![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)](https://redis.io)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://docker.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -23,7 +26,7 @@
 
 <br/>
 
-<img src="docs/images/architecture.png" alt="System Architecture" width="800"/>
+<img src="docs/images/architecture.svg" alt="System Architecture" width="800"/>
 
 </div>
 
