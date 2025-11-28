@@ -8,6 +8,42 @@ jobs:
     strategy:
       matrix:
         python-version: [ "3.11", "3.12" ]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: multidb_rag
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,4 +57,16 @@ jobs:
       - name: Lint
         run: ruff check .
       - name: Test
-        run: pytest -q || true
+        env:
+          POSTGRESQL_HOST: localhost
+          POSTGRESQL_PORT: 5432
+          POSTGRESQL_USER: postgres
+          POSTGRESQL_PASSWORD: testpass
+          POSTGRESQL_DATABASE: multidb_rag
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          MONGODB_HOST: localhost
+          MONGODB_PORT: 27017
+          MONGODB_DATABASE: multidb_rag_test
+          TESTING: "true"
+        run: pytest -q
