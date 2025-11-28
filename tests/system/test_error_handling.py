@@ -1,6 +1,5 @@
 """Fixed error handling tests - properly uses getters and session parameters"""
 import pytest
-import asyncio
 from sqlalchemy import text
 from app.dependencies import get_chatbot_service, get_billing_service
 
@@ -23,7 +22,7 @@ class TestErrorHandling:
             result = await test_db_session.execute(text("SELECT 2"))
             assert result.scalar() == 2
 
-        except Exception as e:
+        except Exception:
             # If there's an error, ensure we rollback
             await test_db_session.rollback()
             raise

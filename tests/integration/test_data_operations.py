@@ -35,6 +35,6 @@ class TestDataOperations:
                 # If it's not async, try sync
                 result = processor.process_directory(temp_dir)
                 assert result is not None
-            except Exception as e:
+            except Exception:
                 # If processing fails for other reasons, just check the method exists
                 assert hasattr(processor, 'process_directory')

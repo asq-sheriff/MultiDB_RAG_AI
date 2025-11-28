@@ -145,7 +145,7 @@ async def run_mini_ai_test():
 
     try:
         # Initialize MongoDB
-        from app.database.mongo_connection import init_enhanced_mongo, get_mongo_manager, close_enhanced_mongo
+        from app.database.mongo_connection import init_enhanced_mongo, close_enhanced_mongo
         await init_enhanced_mongo()
 
         # Get services

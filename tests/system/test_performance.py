@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 import time
 import statistics
 from sqlalchemy import text
@@ -43,9 +42,9 @@ class TestPerformance:
 
         timings = []
 
-        for text in test_texts:
+        for test_text in test_texts:
             start = time.perf_counter()
-            embedding = await embedding_service.embed_query(text)
+            embedding = await embedding_service.embed_query(test_text)
             elapsed = time.perf_counter() - start
             timings.append(elapsed)
 

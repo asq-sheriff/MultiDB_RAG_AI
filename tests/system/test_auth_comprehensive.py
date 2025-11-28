@@ -1,7 +1,5 @@
 """Fixed comprehensive auth tests - properly uses getter"""
 import pytest
-import asyncio
-from datetime import timedelta
 from uuid import uuid4
 from app.dependencies import get_auth_service  # FIXED: Use getter
 

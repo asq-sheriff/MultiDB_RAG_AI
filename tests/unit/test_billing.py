@@ -1,7 +1,7 @@
 """Fixed billing service tests - properly uses getter functions and session parameters"""
 import pytest
 from uuid import uuid4
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, AsyncMock
 from app.dependencies import get_billing_service
 from app.database.postgres_models import User
 
