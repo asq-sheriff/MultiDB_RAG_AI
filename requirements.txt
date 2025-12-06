@@ -127,7 +127,7 @@ types-pytz==2025.2.0.20250809
 typing-inspection==0.4.1
 typing_extensions==4.14.1
 tzdata==2025.2
-urllib3==2.5.0
+urllib3==2.6.0
 uvicorn==0.35.0
 websockets==15.0.1
 yarl==1.20.1
