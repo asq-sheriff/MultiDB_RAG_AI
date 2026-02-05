@@ -72,7 +72,7 @@ pdfplumber==0.10.0
 pillow==11.3.0
 pluggy==1.6.0
 propcache==0.3.2
-protobuf==6.31.1
+protobuf==6.33.5
 psutil==7.0.0
 psycopg-binary==3.2.9
 pyasn1==0.6.1
